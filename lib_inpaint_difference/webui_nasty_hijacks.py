@@ -54,7 +54,11 @@ def hijack_generation_params_ui():
 
             def hijack_select_img2img_tab(original_fn):
                 nonlocal tab_index
-                return *original_fn(), gr.update(visible=tab_index != DifferenceGlobals.tab_index), gr.update(visible=tab_index == DifferenceGlobals.tab_index)
+                updates = list(original_fn())
+                if tab_index == DifferenceGlobals.tab_index:
+                    updates[0] = gr.update(visible=True)
+
+                return *updates, gr.update(visible=tab_index != DifferenceGlobals.tab_index), gr.update(visible=tab_index == DifferenceGlobals.tab_index)
 
             fn = functools.partial(hijack_select_img2img_tab, original_fn=fn)
             original_select(fn=fn, inputs=inputs, outputs=outputs)

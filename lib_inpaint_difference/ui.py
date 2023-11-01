@@ -19,24 +19,25 @@ def create_inpaint_difference_tab():
 
 
 def create_inpaint_difference_generation_params_ui():
-    with gr.Tab(label='Inpaint difference parameters') as inpaint_difference_ui_params:
-        with gr.Row():
-            with gr.Column():
-                allow_rgb_mask = gr.Checkbox(label='RGB mask', value=False, elem_id='inpaint_difference_allow_rgb_mask')
-            with gr.Column():
-                mask_brightness = gr.Slider(label='Brightness', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_brightness')
-        with gr.Tab(label='Mask convolutions'):
+    with gr.Group(visible=False) as inpaint_difference_ui_params:
+        with gr.Tab(label='Inpaint difference parameters'):
             with gr.Row():
                 with gr.Column():
-                    conv_kernel_type = gr.Dropdown(label='Kernel type', choices=ALLOWED_KERNEL_OPTIONS, value='Disabled', elem_id='inpaint_difference_kernel_type')
+                    allow_rgb_mask = gr.Checkbox(label='RGB mask', value=False, elem_id='inpaint_difference_allow_rgb_mask')
                 with gr.Column():
-                    conv_iterations = gr.Slider(label='Iterations', maximum=100, step=1, value=0, elem_id='inpaint_difference_convolution_iterations')
-            with gr.Row():
-                with gr.Column():
-                    conv_weight = gr.Slider(label='Convolutions weight', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_weight')
-                    conv_intersect_weight = gr.Slider(label='Intersection weight', maximum=1, step=0.01, elem_id='inpaint_difference_intersection_weight')
-                with gr.Column():
-                    pass
+                    mask_brightness = gr.Slider(label='Brightness', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_brightness')
+            with gr.Tab(label='Mask convolutions'):
+                with gr.Row():
+                    with gr.Column():
+                        conv_kernel_type = gr.Dropdown(label='Kernel type', choices=ALLOWED_KERNEL_OPTIONS, value='Disabled', elem_id='inpaint_difference_kernel_type')
+                    with gr.Column():
+                        conv_iterations = gr.Slider(label='Iterations', maximum=100, step=1, value=0, elem_id='inpaint_difference_convolution_iterations')
+                with gr.Row():
+                    with gr.Column():
+                        conv_weight = gr.Slider(label='Convolutions weight', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_weight')
+                        conv_intersect_weight = gr.Slider(label='Intersection weight', maximum=1, step=0.01, elem_id='inpaint_difference_intersection_weight')
+                    with gr.Column():
+                        pass
 
     params = {
         'fn': compute_mask,

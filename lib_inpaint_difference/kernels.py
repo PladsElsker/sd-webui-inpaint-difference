@@ -10,11 +10,6 @@ class AllowedKernels(Enum):
         [2, 4, 2],
         [1, 2, 1],
     ]) / 16)
-    SHARPEN = ('Sharpen', np.array([
-        [ 0, -1,  0],
-        [-1,  5, -1],
-        [ 0, -1,  0],
-    ]))
 
 
 AllowedKernels.item_map = {
