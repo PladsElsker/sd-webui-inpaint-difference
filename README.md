@@ -15,7 +15,7 @@ in the `URL for extension's git repository` checkbox
 This extension will appear as a custom inpaint tab under the `img2img` tab:  
 ![image](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/9c3492a7-a15b-4852-8177-3893f33c721d)
 
-The process can be broken down into 2 steps:
+**The process can be broken down into 2 steps:**
 - Generate the mask
 - Generate an image like you normally would
 
