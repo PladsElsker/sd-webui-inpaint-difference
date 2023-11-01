@@ -6,7 +6,11 @@ Some examples:
 
 ## Installation
 1) Go to `extensions` > `Install from URL` in the webui
-2) Paste `https://github.com/John-WL/sd-webui-inpaint-difference` in the `URL for extension's git repository` checkbox
+2) Paste
+```
+https://github.com/John-WL/sd-webui-inpaint-difference
+```
+in the `URL for extension's git repository` checkbox
 3) Click the `Install` button
 
 ## How to use
