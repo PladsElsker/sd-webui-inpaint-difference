@@ -8,18 +8,17 @@ sd-webui-inpaint-difference is an A1111 extension to automatically find the inpa
 ```
 https://github.com/John-WL/sd-webui-inpaint-difference
 ```
-in the `URL for extension's git repository` checkbox  
+in the `URL for extension's git repository` textbox
 - Click the `Install` button
+- Restart the Webui
 
 ## How to use
 This extension will appear as a custom inpaint tab under the `img2img` tab:  
 ![image](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/9c3492a7-a15b-4852-8177-3893f33c721d)
 
-**The process can be broken down into 2 steps:**
-- Generate the mask
-- Generate an image like you normally would
+The mask will appear once you upload both the base and the altered image. 
 
 
-To start, upload your base image. Then, do some modifications to the base image in the illustration software of your choice, and upload the altered image:
+There are additional settings you can play with under the tab, make sure that the mask looks like what you want
 
 
