@@ -30,7 +30,7 @@ Now that both your base and altered images are uploaded, the mask should generat
 It's too dim right now, you can play with the settings to improve it:
 ![image](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/0e49f836-e64e-484e-b732-1a4ecc30ee43)
 
-You should be able to make it look like this if you play with the settings:
+You can improve how it looks by playing with the mask settings:
 ![image](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/c185f563-2ac5-47d9-89ce-e19566b861ad)
 
 The rest of the pipeline is as ususal! You can use controlnet or any other extension to generate images with the mask.  
