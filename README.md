@@ -13,7 +13,7 @@ in the `URL for extension's git repository` checkbox
 
 ## How to use
 This extension will appear as a custom inpaint tab under the `img2img` tab:  
-![image](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/d6bc7b3b-d1a3-4706-88ab-623ead511c8d)
+![image](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/9c3492a7-a15b-4852-8177-3893f33c721d)
 
 To start, upload your base image: 
 ![image](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/2075367b-3076-4e95-b477-6162bb7b80c0)
