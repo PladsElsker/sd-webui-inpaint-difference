@@ -1,94 +1,65 @@
-import inspect
-
 import gradio as gr
-
 from modules.shared import opts
+
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.processing import compute_mask
+from lib_inpaint_difference.kernels import ALLOWED_KERNEL_OPTIONS
 
 
-def create_inpaint_automask_tab():
-    with gr.TabItem('Inpaint difference', id='inpaint_automask', elem_id="img2img_inpaint_automask_tab") as tab_inpaint_automask:
+def create_inpaint_difference_tab():
+    with gr.TabItem('Inpaint difference', id='inpaint_difference', elem_id="img2img_inpaint_difference_tab") as tab_inpaint_automask:
         with gr.Row():
             with gr.Column():
-                automask_inpaint_img = gr.Image(label="Base image", source="upload", interactive=True, type="pil", elem_id="img_inpaint_automask")
+                DifferenceGlobals.inpaint_img_component = gr.Image(label="Base image", source="upload", interactive=True, type="pil", elem_id="img_inpaint_difference")
             with gr.Column():
-                automask_inpaint_alt = gr.Image(label="Altered image", source="upload", interactive=True, type="pil", elem_id="diff_inpaint_automask")
-        automask_inpaint_mask = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="mask_inpaint_automask", tool="sketch", height=opts.img2img_editor_height, brush_color=opts.img2img_inpaint_mask_brush_color)
+                DifferenceGlobals.inpaint_alt_component = gr.Image(label="Altered image", source="upload", interactive=True, type="pil", elem_id="alt_inpaint_difference")
+        DifferenceGlobals.inpaint_mask_component = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="mask_inpaint_difference", tool="sketch", height=opts.img2img_editor_height, brush_color=opts.img2img_inpaint_mask_brush_color)
 
+    return tab_inpaint_automask
+
+
+def create_inpaint_difference_generation_params_ui():
+    with gr.Tab(label='Inpaint difference parameters') as inpaint_difference_ui_params:
         with gr.Row():
             with gr.Column():
-                rgb_mask = gr.Checkbox(label='RGB mask')
+                allow_rgb_mask = gr.Checkbox(label='RGB mask', value=False, elem_id='inpaint_difference_allow_rgb_mask')
             with gr.Column():
-                saturation = gr.Slider(label='Brightness', maximum=1, step=0.01)
+                mask_brightness = gr.Slider(label='Brightness', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_brightness')
         with gr.Tab(label='Mask convolutions'):
             with gr.Row():
                 with gr.Column():
-                    gr.Dropdown(label='Kernel type', choices=['Disabled', 'Blur'], value='Disabled')
+                    conv_kernel_type = gr.Dropdown(label='Kernel type', choices=ALLOWED_KERNEL_OPTIONS, value='Disabled', elem_id='inpaint_difference_kernel_type')
                 with gr.Column():
-                    gr.Slider(label='Iterations')
+                    conv_iterations = gr.Slider(label='Iterations', maximum=100, step=1, value=0, elem_id='inpaint_difference_convolution_iterations')
             with gr.Row():
                 with gr.Column():
-                    gr.Slider(label='Weight')
-                    gr.Slider(label='Intersection weight')
+                    conv_weight = gr.Slider(label='Convolutions weight', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_weight')
+                    conv_intersect_weight = gr.Slider(label='Intersection weight', maximum=1, step=0.01, elem_id='inpaint_difference_intersection_weight')
                 with gr.Column():
                     pass
 
     params = {
         'fn': compute_mask,
         'inputs': [
-            automask_inpaint_img,
-            automask_inpaint_alt,
-            rgb_mask,
-            saturation,
+            DifferenceGlobals.inpaint_img_component,
+            DifferenceGlobals.inpaint_alt_component,
+            allow_rgb_mask,
+            mask_brightness,
+            conv_kernel_type,
+            conv_iterations,
+            conv_weight,
+            conv_intersect_weight,
         ],
-        'outputs': [automask_inpaint_mask]
+        'outputs': [DifferenceGlobals.inpaint_mask_component]
     }
 
-    automask_inpaint_img.change(**params)
-    automask_inpaint_alt.change(**params)
-    rgb_mask.change(**params)
-    saturation.release(**params)
+    DifferenceGlobals.inpaint_img_component.change(**params)
+    DifferenceGlobals.inpaint_alt_component.change(**params)
+    allow_rgb_mask.change(**params)
+    mask_brightness.release(**params)
+    conv_kernel_type.change(**params)
+    conv_iterations.release(**params)
+    conv_weight.release(**params)
+    conv_intersect_weight.release(**params)
 
-    return tab_inpaint_automask
-
-
-def hijack_gradio_tabs():
-    original_gr_tabs = gr.Tabs
-
-    class HijackedGrTabs(gr.Tabs):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-
-        def __exit__(self, *args, **kwargs):
-            if self.elem_id == "mode_img2img":
-                tab_automask = create_inpaint_automask_tab()
-                DifferenceGlobals.img2img_tab = tab_automask
-                append_tabitem_to_img2img_tabs(tab_automask)
-
-            super().__exit__(*args, **kwargs)
-            self.__class__ = original_gr_tabs
-
-    gr.Tabs = HijackedGrTabs
-
-
-def append_tabitem_to_img2img_tabs(tabitem):
-    stack = inspect.stack()
-
-    for frame_info in stack:
-        code_ctx = frame_info.code_context
-        if len(code_ctx) == 0:
-            continue
-
-        code_ctx = code_ctx[0]
-        if f'elem_id="mode_img2img"' not in code_ctx:
-            continue
-
-        f_locals = frame_info.frame.f_locals
-        img2img_tabs = f_locals.get('img2img_tabs', None)
-        img2img_selected_tab = f_locals.get('img2img_selected_tab', None)
-
-        img2img_tabs.append(tabitem)
-        DifferenceGlobals.tab_index = len(img2img_tabs)-1
-        tabitem.select(fn=lambda tabnum=DifferenceGlobals.tab_index: tabnum, inputs=[], outputs=[img2img_selected_tab])
-        return
+    DifferenceGlobals.ui_params = inpaint_difference_ui_params

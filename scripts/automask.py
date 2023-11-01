@@ -1,6 +1,0 @@
-from lib_inpaint_difference.ui import hijack_gradio_tabs
-from lib_inpaint_difference.processing import hijack_img2img_processing
-
-
-hijack_gradio_tabs()
-hijack_img2img_processing()
