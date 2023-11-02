@@ -1,22 +1,16 @@
-import gradio as gr
+import cv2
 
 import numpy as np
 from PIL import Image
-from scipy.signal import convolve2d
 
 from lib_inpaint_difference.globals import DifferenceGlobals
-from lib_inpaint_difference.kernels import AllowedKernels
 
 
 def compute_mask(
         base_img,
         altered_img,
-        is_rgb_mask,
-        saturation,
-        conv_kernel_type,
-        iterations,
-        conv_weight,
-        conv_intersect_weight
+        blur_amount,
+        dilation_amount,
 ):
     DifferenceGlobals.base_image = base_img
     DifferenceGlobals.altered_image = altered_img
@@ -33,12 +27,15 @@ def compute_mask(
     altered = np.array(altered_pil)
 
     mask = compute_diff(base, altered)
-    mask = handle_rgb_uncolorization(mask, is_rgb_mask)
-    mask = compute_staturation(mask, saturation)
-    mask = apply_convolutions(mask, conv_kernel_type, iterations, conv_weight, conv_intersect_weight)
+    mask = uncolorize(mask)
+    mask = saturate(mask)
+    mask = dilate(mask, dilation_amount)
 
     mask_pil = Image.fromarray(mask, mode=DifferenceGlobals.base_image.mode)
     DifferenceGlobals.generated_mask = mask_pil
+
+    displayed_mask = visual_blur(mask, blur_amount)
+
     return mask_pil
 
 
@@ -46,10 +43,7 @@ def compute_diff(base, altered):
     return np.where(base > altered, base - altered, altered - base)
 
 
-def handle_rgb_uncolorization(mask, is_rgb_mask):
-    if is_rgb_mask:
-        return mask
-
+def uncolorize(mask):
     r = mask[:, :, 0]
     g = mask[:, :, 1]
     b = mask[:, :, 2]
@@ -57,34 +51,28 @@ def handle_rgb_uncolorization(mask, is_rgb_mask):
     return np.repeat(average[:, :, np.newaxis], repeats=3, axis=2)
 
 
-def compute_staturation(mask, saturation):
-    clamped = np.where(mask == 0, 0, 255)
-    return (mask*(1-saturation) + clamped*saturation).astype(np.uint8)
+def saturate(mask):
+    return (np.where(mask == 0, 0, 255)).astype(np.uint8)
 
 
-def apply_convolutions(mask, conv_kernel_type, iterations, conv_weight, conv_intersect_weight):
-    if iterations == 0:
+def dilate(mask, dilation_amount):
+    if dilation_amount == 0:
         return mask
 
-    kernel = AllowedKernels.item_map[conv_kernel_type]
-    if kernel is None:
+    b, g, r = cv2.split(mask)
+
+    kernel = np.ones((3, 3), np.uint8)
+
+    dilated_b = cv2.dilate(b, kernel, iterations=dilation_amount)
+    dilated_g = cv2.dilate(g, kernel, iterations=dilation_amount)
+    dilated_r = cv2.dilate(r, kernel, iterations=dilation_amount)
+
+    return np.stack((dilated_r, dilated_g, dilated_b), axis=-1).astype(np.int8)
+
+
+def visual_blur(mask, blur_amount):
+    if blur_amount == 0:
         return mask
 
-    mask_before = mask
-
-    mask_r = mask[:, :, 0]
-    mask_g = mask[:, :, 1]
-    mask_b = mask[:, :, 2]
-    for _ in range(iterations):
-        mask_r = convolve2d(mask_r, kernel, mode='same')
-        mask_g = convolve2d(mask_g, kernel, mode='same')
-        mask_b = convolve2d(mask_b, kernel, mode='same')
-
-    mask = np.stack((mask_r, mask_g, mask_b), axis=-1)
-
-    cropped_conv = np.where(mask_before == 0, mask, mask_before)
-
-    mask = cropped_conv*conv_intersect_weight + mask*(1-conv_intersect_weight)
-    mask = mask*conv_weight + mask_before*(1-conv_weight)
-
-    return mask.astype(np.uint8)
+    blur_amount = blur_amount * 2 + 1
+    return cv2.GaussianBlur(mask, (blur_amount, blur_amount), 0)

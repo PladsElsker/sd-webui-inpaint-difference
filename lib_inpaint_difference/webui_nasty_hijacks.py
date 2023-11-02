@@ -1,9 +1,9 @@
-import inspect
 import functools
 import gradio as gr
 
 from modules import img2img
 
+from lib_inpaint_difference.stack_ops import find_f_local_in_stack
 from lib_inpaint_difference.ui import create_inpaint_difference_tab
 from lib_inpaint_difference.globals import DifferenceGlobals
 
@@ -27,7 +27,6 @@ def hijack_img2img_processing():
                 'image': DifferenceGlobals.altered_image,
                 'mask': DifferenceGlobals.generated_mask
             }
-            mask_blur = 0
 
         return original_img2img_processing(id_task, mode, prompt, negative_prompt, prompt_styles, init_img, sketch,
             init_img_with_mask, inpaint_color_sketch, inpaint_color_sketch_orig, init_img_inpaint,
@@ -43,14 +42,13 @@ def hijack_img2img_processing():
 
 
 def hijack_generation_params_ui():
-    mask_blur = find_f_local_in_stack('mask_blur')
     img2img_tabs = find_f_local_in_stack('img2img_tabs')
     for i, tab in enumerate(img2img_tabs):
         def hijack_select(*args, tab_index, original_select, **kwargs):
             fn = kwargs.get('fn')
             inputs = kwargs.get('inputs')
             outputs = kwargs.get('outputs')
-            outputs.extend([mask_blur, DifferenceGlobals.ui_params])
+            outputs.extend([DifferenceGlobals.ui_params])
 
             def hijack_select_img2img_tab(original_fn):
                 nonlocal tab_index
@@ -58,7 +56,7 @@ def hijack_generation_params_ui():
                 if tab_index == DifferenceGlobals.tab_index:
                     updates[0] = gr.update(visible=True)
 
-                return *updates, gr.update(visible=tab_index != DifferenceGlobals.tab_index), gr.update(visible=tab_index == DifferenceGlobals.tab_index)
+                return *updates, gr.update(visible=tab_index == DifferenceGlobals.tab_index)
 
             fn = functools.partial(hijack_select_img2img_tab, original_fn=fn)
             original_select(fn=fn, inputs=inputs, outputs=outputs)
@@ -88,18 +86,3 @@ def hijack_gradio_tabs():
             self.__class__ = original_gr_tabs
 
     gr.Tabs = HijackedGrTabs
-
-
-def find_f_local_in_stack(local_name):
-    stack = inspect.stack()
-
-    for frame_info in stack:
-        code_ctx = frame_info.code_context
-        if len(code_ctx) == 0:
-            continue
-
-        f_locals = frame_info.frame.f_locals
-        if local_name not in f_locals:
-            continue
-
-        return f_locals[local_name]
