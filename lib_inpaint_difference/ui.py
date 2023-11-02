@@ -2,9 +2,8 @@ import gradio as gr
 from modules.shared import opts
 from modules.ui_components import ToolButton
 
-from lib_inpaint_difference.context_pack import ParentBlock
 from lib_inpaint_difference.globals import DifferenceGlobals
-from lib_inpaint_difference.processing import compute_mask
+from lib_inpaint_difference.mask_processing import compute_mask
 
 
 def create_inpaint_difference_tab():
@@ -29,16 +28,12 @@ def create_inpaint_difference_tab():
 def inject_inpaint_difference_generation_params_ui():
     mask_dilation = gr.Slider(label='Mask dilation', visible=False, maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
 
-    with ParentBlock():
-        show_image_under_mask = gr.Checkbox(label='Show image under mask', visible=False, value=False)
-
     params = {
         'fn': compute_mask,
         'inputs': [
             DifferenceGlobals.inpaint_img_component,
             DifferenceGlobals.inpaint_alt_component,
             mask_dilation,
-            show_image_under_mask,
         ],
         'outputs': [DifferenceGlobals.inpaint_mask_component]
     }
@@ -48,6 +43,5 @@ def inject_inpaint_difference_generation_params_ui():
     DifferenceGlobals.inpaint_alt_component.upload(**params)
     DifferenceGlobals.inpaint_alt_component.clear(**params)
     mask_dilation.release(**params)
-    show_image_under_mask.change(**params)
 
-    DifferenceGlobals.ui_params = mask_dilation, show_image_under_mask
+    DifferenceGlobals.ui_params = mask_dilation,

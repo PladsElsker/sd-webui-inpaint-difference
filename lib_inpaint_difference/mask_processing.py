@@ -3,8 +3,6 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from modules.shared import opts
-
 from lib_inpaint_difference.globals import DifferenceGlobals
 
 
@@ -12,7 +10,6 @@ def compute_mask(
         base_img,
         altered_img,
         dilation_amount,
-        show_image_under_mask,
 ):
     DifferenceGlobals.base_image = base_img
     DifferenceGlobals.altered_image = altered_img
@@ -38,7 +35,7 @@ def compute_mask(
     DifferenceGlobals.generated_mask = mask_pil
 
     visual_mask = colorize(mask)
-    if show_image_under_mask:
+    if DifferenceGlobals.show_image_under_mask:
         visual_mask = add_image_under_mask(mask, visual_mask, altered)
 
     return Image.fromarray(visual_mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
@@ -74,7 +71,7 @@ def dilate(mask, dilation_amount):
 
 
 def colorize(mask):
-    color_str = opts.img2img_inpaint_mask_brush_color
+    color_str = DifferenceGlobals.mask_brush_color
     color = np.array([int(color_str[i:i+2], 16)/255 for i in range(1, 7, 2)])
     return mask * color
 
