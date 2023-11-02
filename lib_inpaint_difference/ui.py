@@ -2,7 +2,6 @@ import gradio as gr
 from modules.shared import opts
 from modules.ui_components import ToolButton
 
-from lib_inpaint_difference.stack_ops import find_f_local_in_stack
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.processing import compute_mask
 
