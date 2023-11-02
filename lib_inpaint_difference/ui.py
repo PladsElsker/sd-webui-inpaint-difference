@@ -29,8 +29,6 @@ def create_inpaint_difference_tab():
 
 
 def create_inpaint_difference_generation_params_ui():
-    mask_blur = find_f_local_in_stack('mask_blur')
-
     with gr.Group(visible=False) as inpaint_difference_ui_params:
         mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
 
@@ -39,7 +37,6 @@ def create_inpaint_difference_generation_params_ui():
         'inputs': [
             DifferenceGlobals.inpaint_img_component,
             DifferenceGlobals.inpaint_alt_component,
-            mask_blur,
             mask_dilation,
         ],
         'outputs': [DifferenceGlobals.inpaint_mask_component]
@@ -47,11 +44,6 @@ def create_inpaint_difference_generation_params_ui():
 
     DifferenceGlobals.inpaint_img_component.change(**params)
     DifferenceGlobals.inpaint_alt_component.change(**params)
-
-    # Taking ownership, not good...
-    mask_blur.release(**params)
-    # It's only a visual behavior, so I'm hoping that it won't affect too much anyone.
-
     mask_dilation.release(**params)
 
     DifferenceGlobals.ui_params = inpaint_difference_ui_params
