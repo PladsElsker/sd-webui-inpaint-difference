@@ -19,6 +19,6 @@ This extension will appear as a custom inpaint tab under the `img2img` tab:
 The mask will appear once you upload both the base and the altered image. 
 
 
-There are additional settings you can play with under the tab, make sure that the mask looks like what you want
+There are additional settings you can play with under the tab (mask dialation, show image under mask, etc.). 
 
 
