@@ -21,7 +21,7 @@ def hijack_img2img_processing():
             img2img_batch_inpaint_mask_dir: str, override_settings_texts, img2img_batch_use_png_info: bool,
             img2img_batch_png_info_props: list, img2img_batch_png_info_dir: str, request: gr.Request, *args
     ):
-        if mode == DifferenceGlobals.tab_index:  # processing with inpaint difference
+        if mode == DifferenceGlobals.tab_index:
             mode = 2  # use the inpaint tab for processing
             init_img_with_mask = {
                 'image': DifferenceGlobals.altered_image,

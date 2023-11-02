@@ -47,7 +47,6 @@ def inject_inpaint_difference_generation_params_ui():
     DifferenceGlobals.inpaint_img_component.clear(**params)
     DifferenceGlobals.inpaint_alt_component.upload(**params)
     DifferenceGlobals.inpaint_alt_component.clear(**params)
-    mask_dilation.change(**params)
     mask_dilation.release(**params)
     show_image_under_mask.change(**params)
 
