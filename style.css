@@ -1,8 +1,10 @@
+/*
 .form:has(#img2img_inpaint_difference_swap_images) {
     position: relative !important;
     flex-grow: 0 !important;
     padding: 10px !important;
 }
+*/
 
 #img2img_inpaint_difference_swap_images {
     position: absolute !important;

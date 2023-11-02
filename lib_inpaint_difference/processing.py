@@ -3,6 +3,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from modules.shared import opts
+
 from lib_inpaint_difference.globals import DifferenceGlobals
 
 
@@ -10,6 +12,7 @@ def compute_mask(
         base_img,
         altered_img,
         dilation_amount,
+        show_image_under_mask,
 ):
     DifferenceGlobals.base_image = base_img
     DifferenceGlobals.altered_image = altered_img
@@ -17,10 +20,11 @@ def compute_mask(
     if DifferenceGlobals.base_image is None or DifferenceGlobals.altered_image is None:
         return None
 
-    same_size = DifferenceGlobals.base_image.size == DifferenceGlobals.altered_image.size
-
-    base_pil = DifferenceGlobals.base_image if same_size else DifferenceGlobals.base_image.resize((DifferenceGlobals.altered_image.width, DifferenceGlobals.altered_image.height))
+    base_pil = DifferenceGlobals.base_image
     altered_pil = DifferenceGlobals.altered_image
+    same_size = base_pil.size == altered_pil
+    if not same_size:
+        base_pil = base_pil.resize((altered_pil.width, altered_pil.height))
 
     base = np.array(base_pil)
     altered = np.array(altered_pil)
@@ -32,7 +36,12 @@ def compute_mask(
 
     mask_pil = Image.fromarray(mask, mode=DifferenceGlobals.base_image.mode)
     DifferenceGlobals.generated_mask = mask_pil
-    return mask_pil
+
+    visual_mask = colorize(mask)
+    if show_image_under_mask:
+        visual_mask = add_image_under_mask(mask, visual_mask, altered)
+
+    return Image.fromarray(visual_mask, mode=DifferenceGlobals.base_image.mode)
 
 
 def compute_diff(base, altered):
@@ -64,3 +73,14 @@ def dilate(mask, dilation_amount):
     dilated_r = cv2.dilate(r, kernel, iterations=dilation_amount)
 
     return np.stack((dilated_r, dilated_g, dilated_b), axis=-1).astype(np.int8)
+
+
+def colorize(mask):
+    color_str = opts.img2img_inpaint_mask_brush_color
+    color = np.array([int(color_str[i:i+2], 16)/255 for i in range(1, 7, 2)])
+    return (mask * color).astype(np.uint8)
+
+
+def add_image_under_mask(original_mask, colorized_mask, altered, t=0.8):
+    opacity_mask = (altered*(1-t) + colorized_mask*t).astype(np.uint8)
+    return np.where(original_mask == 0, altered, opacity_mask).astype(np.uint8)
