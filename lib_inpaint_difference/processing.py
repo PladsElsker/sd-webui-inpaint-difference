@@ -33,9 +33,6 @@ def compute_mask(
 
     mask_pil = Image.fromarray(mask, mode=DifferenceGlobals.base_image.mode)
     DifferenceGlobals.generated_mask = mask_pil
-
-    displayed_mask = visual_blur(mask, blur_amount)
-
     return mask_pil
 
 
@@ -68,11 +65,3 @@ def dilate(mask, dilation_amount):
     dilated_r = cv2.dilate(r, kernel, iterations=dilation_amount)
 
     return np.stack((dilated_r, dilated_g, dilated_b), axis=-1).astype(np.int8)
-
-
-def visual_blur(mask, blur_amount):
-    if blur_amount == 0:
-        return mask
-
-    blur_amount = blur_amount * 2 + 1
-    return cv2.GaussianBlur(mask, (blur_amount, blur_amount), 0)
