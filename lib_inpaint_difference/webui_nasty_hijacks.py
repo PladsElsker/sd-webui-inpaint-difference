@@ -1,13 +1,25 @@
 import functools
 import gradio as gr
 
-from modules import img2img
+from modules import img2img, shared
 
 from lib_inpaint_difference.stack_ops import find_f_local_in_stack
 from lib_inpaint_difference.globals import DifferenceGlobals
 
+shared.sd_webui_inpaint_difference_hijacks = {}
+
+
+def skip_hijacked(hijacked_name):
+    if shared.sd_webui_inpaint_difference_hijacks.get(hijacked_name):
+        return True
+    shared.sd_webui_inpaint_difference_hijacks[hijacked_name] = True
+    return False
+
 
 def hijack_img2img_processing():
+    if skip_hijacked('hijack_img2img_processing'):
+        return
+
     original_img2img_processing = img2img.img2img
 
     def hijack_func(id_task: str, mode: int, prompt: str, negative_prompt: str, prompt_styles, init_img, sketch,
@@ -41,6 +53,9 @@ def hijack_img2img_processing():
 
 
 def hijack_generation_params_ui():
+    if skip_hijacked('hijack_generation_params_ui'):
+        return
+
     img2img_tabs = find_f_local_in_stack('img2img_tabs')
     for i, tab in enumerate(img2img_tabs):
         def hijack_select(*args, tab_index, original_select, **kwargs):
