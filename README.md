@@ -1,6 +1,6 @@
 # sd-webui-inpaint-difference
 ## Overview
-sd-webui-inpaint-difference is an A1111 extension to automatically find the inpaint mask to use based on the difference between an image and an altered version of the same image.  
+An A1111 extension to add a new operation mode in the `img2img` tab. It finds the inpaint mask to use based on the difference of two images.  
 
 ## Installation
 - Go to `extensions` > `Install from URL` in the webui
@@ -13,12 +13,11 @@ in the `URL for extension's git repository` textbox
 - Restart the Webui
 
 ## How to use
-This extension will appear as a custom inpaint tab under the `img2img` tab:  
-![image](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/9c3492a7-a15b-4852-8177-3893f33c721d)
+1) Get your image.
+2) Modify it in your favorite illustration software.
+3) Upload your initial image in the "Base image" component, and upload the modified image in the "Altered image" component.
+4) Once both images are uploaded, the mask will appear.
+5) You're done! When clicking the "Generate" button, the operation mode will use the "Altered image" and the "Generated mask" to inpaint the image like you would normally expect with the other operation modes.
 
-The mask will appear once you upload both the base and the altered image. 
-
-
-There are additional settings you can play with right under the tab (mask dilation, show image under mask, etc.). 
-
+> Additional parameters are added under the operation mode as well to edit the mask. You can also look into the settings for the brush color and other options like that. 
 
