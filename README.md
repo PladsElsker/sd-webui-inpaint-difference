@@ -2,6 +2,12 @@
 ## Overview
 An A1111 extension to add a new operation mode in the `img2img` tab. It finds the inpaint mask to use based on the difference between two images.  
 
+## Usage
+Here is the suggested workflow for this extension:  
+
+![Untitled](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/28027417-a4f2-4145-861a-2d54734854e4)
+
+
 ## Installation
 1) Go to Extensions > Available
 2) Click the `Load from:` button
