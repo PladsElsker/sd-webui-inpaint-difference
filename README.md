@@ -14,7 +14,7 @@ Here is the suggested workflow for this extension:
 
 ![Untitled](https://github.com/John-WL/sd-webui-inpaint-difference/assets/34081873/28027417-a4f2-4145-861a-2d54734854e4)
 
-> Additional parameters are added under the img2img operation mode to further edit the mask.
+> Additional parameters are added under the img2img operation mode to further edit the mask.  
 > You can also look into the settings for the brush color, and other options. 
 
 
