@@ -13,8 +13,7 @@ def on_before_component(_, **kwargs):
     elem_id = kwargs.get('elem_id', None)
 
     if elem_id == 'img2img_batch_inpaint_mask_dir':
-        tab_inpaint_background = create_inpaint_difference_tab()
-        DifferenceGlobals.img2img_tab = tab_inpaint_background
+        DifferenceGlobals.img2img_tab = create_inpaint_difference_tab()
 
     if elem_id == 'img2img_mask_alpha':
         inject_inpaint_difference_generation_params_ui()
