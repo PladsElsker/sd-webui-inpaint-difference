@@ -15,9 +15,9 @@ in the `URL for extension's git repository` textbox
 ## How to use
 1) Get your image.
 2) Modify it in your favorite illustration software.
-3) Upload your initial image in the "Base image" component, and upload the modified image in the "Altered image" component.
-4) Once both images are uploaded, the mask will appear.
-5) You're done! When clicking the "Generate" button, the operation mode will use the "Altered image" and the "Generated mask" to inpaint the image like you would normally expect with the other operation modes.
+3) Upload your initial image in the `Base image`, and upload the modified image in the `Altered image`.
+4) Once both images are uploaded, the `Generated mask` will appear.
+5) You're done! When clicking the `Generate` button, the operation mode will use the `Altered image` and the `Generated mask` to inpaint the image like you would normally expect with the other operation modes.
 
 > Additional parameters are added under the operation mode as well to edit the mask. You can also look into the settings for the brush color and other options like that. 
 
