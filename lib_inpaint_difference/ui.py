@@ -3,7 +3,7 @@ from modules.shared import opts
 from modules.ui_components import ToolButton
 
 from lib_inpaint_difference.globals import DifferenceGlobals
-from lib_inpaint_background.context_pack import ParentBlock
+from lib_inpaint_difference.context_pack import ParentBlock
 from lib_inpaint_difference.mask_processing import compute_mask
 
 
