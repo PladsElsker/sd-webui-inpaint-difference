@@ -3,16 +3,19 @@ from modules.shared import opts
 from modules.ui_components import ToolButton
 
 from lib_inpaint_difference.globals import DifferenceGlobals
+from lib_inpaint_background.context_pack import ParentBlock
 from lib_inpaint_difference.mask_processing import compute_mask
 
 
 def create_inpaint_difference_tab():
-    with gr.TabItem('Inpaint difference', id='inpaint_difference', elem_id="img2img_inpaint_difference_tab") as tab_inpaint_automask:
-        with gr.Row():
-            DifferenceGlobals.inpaint_img_component = gr.Image(label="Base image", source="upload", interactive=True, type="pil", elem_id="img_inpaint_difference")
-            swap_images = ToolButton('⇆', elem_id='img2img_inpaint_difference_swap_images', tooltip="Swap images.")
-            DifferenceGlobals.inpaint_alt_component = gr.Image(label="Altered image", source="upload", interactive=True, type="pil", elem_id="alt_inpaint_difference")
-        DifferenceGlobals.inpaint_mask_component = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="mask_inpaint_difference", tool="sketch", height=opts.img2img_editor_height, brush_color=opts.img2img_inpaint_mask_brush_color)
+    with ParentBlock():
+        with gr.TabItem('Inpaint difference', id='inpaint_difference', elem_id="img2img_inpaint_difference_tab") as tab_inpaint_automask:
+            with gr.Row():
+                DifferenceGlobals.inpaint_img_component = gr.Image(label="Base image", source="upload", interactive=True, type="pil", elem_id="img_inpaint_difference")
+                swap_images = ToolButton('⇆', elem_id='img2img_inpaint_difference_swap_images', tooltip="Swap images.")
+                DifferenceGlobals.inpaint_alt_component = gr.Image(label="Altered image", source="upload", interactive=True, type="pil", elem_id="alt_inpaint_difference")
+
+            DifferenceGlobals.inpaint_mask_component = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="mask_inpaint_difference", tool="sketch", height=opts.img2img_editor_height, brush_color=opts.img2img_inpaint_mask_brush_color)
 
     def swap_images_func(img, alt):
         DifferenceGlobals.base_image = alt

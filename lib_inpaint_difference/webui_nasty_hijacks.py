@@ -4,7 +4,6 @@ import gradio as gr
 from modules import img2img
 
 from lib_inpaint_difference.stack_ops import find_f_local_in_stack
-from lib_inpaint_difference.ui import create_inpaint_difference_tab
 from lib_inpaint_difference.globals import DifferenceGlobals
 
 
@@ -66,25 +65,10 @@ def hijack_generation_params_ui():
         tab.select = functools.partial(hijack_select, tab_index=i, original_select=tab.select)
 
 
-def hijack_gradio_tabs():
-    def append_tabitem_to_img2img_tabs(tabitem):
-        img2img_tabs = find_f_local_in_stack('img2img_tabs')
-        img2img_selected_tab = find_f_local_in_stack('img2img_selected_tab')
+def register_tabitem_to_tab_list():
+    img2img_tabs = find_f_local_in_stack('img2img_tabs')
+    img2img_selected_tab = find_f_local_in_stack('img2img_selected_tab')
 
-        img2img_tabs.append(tabitem)
-        DifferenceGlobals.tab_index = len(img2img_tabs)-1
-        tabitem.select(fn=lambda tabnum=DifferenceGlobals.tab_index: tabnum, inputs=[], outputs=[img2img_selected_tab])
-
-    original_gr_tabs = gr.Tabs
-
-    class HijackedGrTabs(gr.Tabs):
-        def __exit__(self, *args, **kwargs):
-            if self.elem_id == "mode_img2img":
-                tab_inpaint_difference = create_inpaint_difference_tab()
-                DifferenceGlobals.img2img_tab = tab_inpaint_difference
-                append_tabitem_to_img2img_tabs(tab_inpaint_difference)
-
-            super().__exit__(*args, **kwargs)
-            self.__class__ = original_gr_tabs
-
-    gr.Tabs = HijackedGrTabs
+    img2img_tabs.append(DifferenceGlobals.img2img_tab)
+    DifferenceGlobals.tab_index = len(img2img_tabs)-1
+    DifferenceGlobals.img2img_tab.select(fn=lambda tabnum=DifferenceGlobals.tab_index: tabnum, inputs=[], outputs=[img2img_selected_tab])
