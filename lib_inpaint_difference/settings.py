@@ -1,5 +1,3 @@
-import gradio as gr
-
 from modules.shared import opts, OptionInfo
 from modules import ui_components
 
