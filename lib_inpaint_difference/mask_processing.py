@@ -33,11 +33,11 @@ def compute_mask(
     mask = saturate(mask)
     mask = dilate(mask, dilation_amount)
 
-    # mask used for computation by the img2img processing
+    # mask used for computation by StableDiffusionProcessingImg2Img
     mask_pil = Image.fromarray(mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
     DifferenceGlobals.generated_mask = mask_pil
 
-    # the rest of the calculations are visual only
+    # the rest of the calculations are either duplicates of StableDiffusionProcessingImg2Img or visual only
     mask = blur(mask, blur_amount)
 
     visual_mask = mask
