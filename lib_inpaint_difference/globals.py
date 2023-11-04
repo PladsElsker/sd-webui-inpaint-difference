@@ -2,8 +2,6 @@ from modules.shared import opts
 
 
 class DifferenceGlobals:
-    sd_webui_inpaint_difference_hijacks = None
-
     img2img_tab = None
     tab_index = None
     ui_params = None

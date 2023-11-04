@@ -28,11 +28,6 @@ def hijack_img2img_processing():
                 'image': DifferenceGlobals.altered_image,
                 'mask': DifferenceGlobals.generated_mask
             }
-            mask_blur = DifferenceGlobals.mask_blur
-            inpainting_mask_invert = DifferenceGlobals.inpainting_mask_invert
-            inpainting_fill = DifferenceGlobals.inpainting_fill
-            inpaint_full_res = DifferenceGlobals.inpaint_full_res
-            inpaint_full_res_padding = DifferenceGlobals.inpaint_full_res_padding
 
         return original_img2img_processing(id_task, mode, prompt, negative_prompt, prompt_styles, init_img, sketch,
             init_img_with_mask, inpaint_color_sketch, inpaint_color_sketch_orig, init_img_inpaint,
@@ -60,6 +55,8 @@ def hijack_generation_params_ui():
             def hijack_select_img2img_tab(original_fn):
                 nonlocal tab_index
                 updates = list(original_fn())
+                if tab_index == DifferenceGlobals.tab_index:
+                    updates[0] = gr.update(visible=True)
 
                 new_updates_state = gr.update(visible=tab_index == DifferenceGlobals.tab_index)
                 new_updates = [new_updates_state] * len(DifferenceGlobals.ui_params)

@@ -9,12 +9,11 @@ from lib_inpaint_difference.globals import DifferenceGlobals
 def compute_mask(
         base_img,
         altered_img,
-        dilation_amount,
         blur_amount,
+        dilation_amount,
 ):
     DifferenceGlobals.base_image = base_img
     DifferenceGlobals.altered_image = altered_img
-    DifferenceGlobals.mask_blur = blur_amount
 
     if DifferenceGlobals.base_image is None or DifferenceGlobals.altered_image is None:
         return None
