@@ -1,6 +1,7 @@
 import gradio as gr
-from modules.shared import opts
+from modules.shared import opts, cmd_opts
 from modules.ui_components import ToolButton, FormGroup, FormRow
+from modules.ui_loadsave import UiLoadsave
 
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.context_pack import ParentBlock
@@ -66,11 +67,26 @@ def inject_inpaint_difference_generation_params_ui():
 
     DifferenceGlobals.ui_params = inpaint_controls,
 
-    def update_dup_params_fn(inpainting_mask_invert, inpainting_fill, inpaint_full_res, inpaint_full_res_padding):
-        DifferenceGlobals.inpainting_mask_invert = inpainting_mask_invert
-        DifferenceGlobals.inpainting_fill = inpainting_fill
-        DifferenceGlobals.inpaint_full_res = inpaint_full_res
-        DifferenceGlobals.inpaint_full_res_padding = inpaint_full_res_padding
+    # Load defaults for the "hijacked-but-out-of-the-loop" ui params, and keep them in sync
+    loadsave = UiLoadsave(cmd_opts.ui_config_file)
+    try:
+        DifferenceGlobals.inpainting_mask_invert = [c[0] for c in inpainting_mask_invert.choices].index(loadsave.ui_settings['img2img/Mask mode/value'])
+    except ValueError:
+        DifferenceGlobals.inpainting_mask_invert = [c[0] for c in inpainting_mask_invert.choices].index(loadsave.ui_settings['img2img/Masking mode/value'])
+    DifferenceGlobals.inpainting_fill = [c[0] for c in inpainting_fill.choices].index(loadsave.ui_settings['img2img/Masked content/value'])
+    DifferenceGlobals.inpaint_full_res = [c[0] for c in inpaint_full_res.choices].index(loadsave.ui_settings['img2img/Inpaint area/value'])
+    DifferenceGlobals.inpaint_full_res_padding = loadsave.ui_settings['img2img/Only masked padding, pixels/value']
+
+    def update_dup_params_fn(
+            processed_inpainting_mask_invert,
+            processed_inpainting_fill,
+            processed_inpaint_full_res,
+            processed_inpaint_full_res_padding
+    ):
+        DifferenceGlobals.inpainting_mask_invert = processed_inpainting_mask_invert
+        DifferenceGlobals.inpainting_fill = processed_inpainting_fill
+        DifferenceGlobals.inpaint_full_res = processed_inpaint_full_res
+        DifferenceGlobals.inpaint_full_res_padding = processed_inpaint_full_res_padding
 
     update_dup_params = {
         'fn': update_dup_params_fn,
