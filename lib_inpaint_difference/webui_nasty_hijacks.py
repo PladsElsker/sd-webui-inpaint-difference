@@ -1,25 +1,15 @@
 import functools
 import gradio as gr
 
-from modules import img2img, shared
+from modules import img2img
 
 from lib_inpaint_difference.stack_ops import find_f_local_in_stack
 from lib_inpaint_difference.globals import DifferenceGlobals
-
-shared.sd_webui_inpaint_difference_hijacks = {}
-
-
-def skip_hijacked(hijacked_name):
-    if shared.sd_webui_inpaint_difference_hijacks.get(hijacked_name):
-        return True
-    shared.sd_webui_inpaint_difference_hijacks[hijacked_name] = True
-    return False
+from lib_inpaint_difference.one_time_callable import one_time_callable
 
 
+@one_time_callable
 def hijack_img2img_processing():
-    if skip_hijacked('hijack_img2img_processing'):
-        return
-
     original_img2img_processing = img2img.img2img
 
     def hijack_func(id_task: str, mode: int, prompt: str, negative_prompt: str, prompt_styles, init_img, sketch,
@@ -33,11 +23,16 @@ def hijack_img2img_processing():
             img2img_batch_png_info_props: list, img2img_batch_png_info_dir: str, request: gr.Request, *args
     ):
         if mode == DifferenceGlobals.tab_index:
-            mode = 2  # use the inpaint tab for processing
+            mode = 2  # use the "inpaint" operation mode for processing
             init_img_with_mask = {
                 'image': DifferenceGlobals.altered_image,
                 'mask': DifferenceGlobals.generated_mask
             }
+            mask_blur = DifferenceGlobals.mask_blur
+            inpainting_mask_invert = DifferenceGlobals.inpainting_mask_invert
+            inpainting_fill = DifferenceGlobals.inpainting_fill
+            inpaint_full_res = DifferenceGlobals.inpaint_full_res
+            inpaint_full_res_padding = DifferenceGlobals.inpaint_full_res_padding
 
         return original_img2img_processing(id_task, mode, prompt, negative_prompt, prompt_styles, init_img, sketch,
             init_img_with_mask, inpaint_color_sketch, inpaint_color_sketch_orig, init_img_inpaint,
@@ -52,10 +47,8 @@ def hijack_img2img_processing():
     img2img.img2img = hijack_func
 
 
+@one_time_callable
 def hijack_generation_params_ui():
-    if skip_hijacked('hijack_generation_params_ui'):
-        return
-
     img2img_tabs = find_f_local_in_stack('img2img_tabs')
     for i, tab in enumerate(img2img_tabs):
         def hijack_select(*args, tab_index, original_select, **kwargs):
@@ -67,8 +60,6 @@ def hijack_generation_params_ui():
             def hijack_select_img2img_tab(original_fn):
                 nonlocal tab_index
                 updates = list(original_fn())
-                if tab_index == DifferenceGlobals.tab_index:
-                    updates[0] = gr.update(visible=True)
 
                 new_updates_state = gr.update(visible=tab_index == DifferenceGlobals.tab_index)
                 new_updates = [new_updates_state] * len(DifferenceGlobals.ui_params)

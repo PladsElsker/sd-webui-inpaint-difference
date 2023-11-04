@@ -15,10 +15,10 @@ def on_before_component(_, **kwargs):
     if elem_id == 'img2img_batch_inpaint_mask_dir':
         DifferenceGlobals.img2img_tab = create_inpaint_difference_tab()
 
-    if elem_id == 'img2img_mask_alpha':
+    if elem_id == 'resize_mode':
         inject_inpaint_difference_generation_params_ui()
 
-    if elem_id == 'img2img_inpaint_full_res':
+    if elem_id == 'img2img_mask_blur':
         register_tabitem_to_tab_list()
         hijack_generation_params_ui()
 
