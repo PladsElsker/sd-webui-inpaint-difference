@@ -15,35 +15,56 @@ def compute_mask(
     DifferenceGlobals.base_image = base_img
     DifferenceGlobals.altered_image = altered_img
 
-    if DifferenceGlobals.base_image is None or DifferenceGlobals.altered_image is None:
+    if not validate_input_images(base_img, altered_img):
         return None
 
-    base_pil = DifferenceGlobals.base_image
-    altered_pil = DifferenceGlobals.altered_image
-    same_size = base_pil.size == altered_pil
+    base_img, altered_img = ensure_same_size(base_img, altered_img)
+
+    base = np.array(base_img).astype(np.int32)
+    altered = np.array(altered_img).astype(np.int32)
+
+    img2img_processing_mask = compute_base_mask(base, altered, dilation_amount)
+    visual_mask = compute_visual_mask(altered, img2img_processing_mask, blur_amount)
+    return Image.fromarray(visual_mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
+
+
+def validate_input_images(base_img, altered_img):
+    return base_img is not None and altered_img is not None
+
+
+def ensure_same_size(base_img, altered_img):
+    same_size = base_img.size == altered_img.size
     if not same_size:
-        base_pil = base_pil.resize((altered_pil.width, altered_pil.height))
+        base_img = base_img.resize((altered_img.width, altered_img.height))
 
-    base = np.array(base_pil).astype(np.int32)
-    altered = np.array(altered_pil).astype(np.int32)
+    return base_img, altered_img
 
+
+def compute_base_mask(
+        base,
+        altered,
+        dilation_amount,
+):
     mask = compute_diff(base, altered)
     mask = uncolorize(mask)
     mask = saturate(mask)
     mask = dilate(mask, dilation_amount)
 
-    # mask used for computation by StableDiffusionProcessingImg2Img
     mask_pil = Image.fromarray(mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
     DifferenceGlobals.generated_mask = mask_pil
+    return mask
 
-    # the rest of the calculations are either duplicates of StableDiffusionProcessingImg2Img or visual only
+
+def compute_visual_mask(
+        altered,
+        mask,
+        blur_amount,
+):
     mask = blur(mask, blur_amount)
-
     visual_mask = mask
     visual_mask = colorize(visual_mask)
     visual_mask = process_image_under_mask(mask, visual_mask, altered)
-
-    return Image.fromarray(visual_mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
+    return visual_mask
 
 
 def compute_diff(base, altered):

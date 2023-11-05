@@ -6,4 +6,5 @@ from lib_inpaint_difference.webui_callbacks import setup_script_callbacks
 if DifferenceGlobals.is_extension_enabled:
     hijack_img2img_processing()
 
+
 setup_script_callbacks()
