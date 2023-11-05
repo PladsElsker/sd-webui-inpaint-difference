@@ -1,9 +1,8 @@
-import functools
 import gradio as gr
+from gradio.context import Context as GradioContext
 
 from modules import img2img
 
-from lib_inpaint_difference.stack_ops import find_f_local_in_stack
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.one_time_callable import one_time_callable
 
@@ -28,6 +27,11 @@ def hijack_img2img_processing():
                 'image': DifferenceGlobals.altered_image,
                 'mask': DifferenceGlobals.generated_mask
             }
+            mask_blur = DifferenceGlobals.mask_blur
+            inpainting_mask_invert = DifferenceGlobals.inpainting_mask_invert
+            inpainting_fill = DifferenceGlobals.inpainting_fill
+            inpaint_full_res = DifferenceGlobals.inpaint_full_res
+            inpaint_full_res_padding = DifferenceGlobals.inpaint_full_res_padding
 
         return original_img2img_processing(id_task, mode, prompt, negative_prompt, prompt_styles, init_img, sketch,
             init_img_with_mask, inpaint_color_sketch, inpaint_color_sketch_orig, init_img_inpaint,
@@ -42,36 +46,19 @@ def hijack_img2img_processing():
     img2img.img2img = hijack_func
 
 
-@one_time_callable
-def hijack_generation_params_ui():
-    img2img_tabs = find_f_local_in_stack('img2img_tabs')
-    for i, tab in enumerate(img2img_tabs):
-        def hijack_select(*args, tab_index, original_select, **kwargs):
-            fn = kwargs.get('fn')
-            inputs = kwargs.get('inputs')
-            outputs = kwargs.get('outputs')
-            outputs.extend(DifferenceGlobals.ui_params)
-
-            def hijack_select_img2img_tab(original_fn):
-                nonlocal tab_index
-                updates = list(original_fn())
-                if tab_index == DifferenceGlobals.tab_index:
-                    updates[0] = gr.update(visible=True)
-
-                new_updates_state = gr.update(visible=tab_index == DifferenceGlobals.tab_index)
-                new_updates = [new_updates_state] * len(DifferenceGlobals.ui_params)
-                return *updates, *new_updates
-
-            fn = functools.partial(hijack_select_img2img_tab, original_fn=fn)
-            original_select(fn=fn, inputs=inputs, outputs=outputs)
-
-        tab.select = functools.partial(hijack_select, tab_index=i, original_select=tab.select)
+def register_tab_index():
+    img2img_tabs = [
+        child
+        for child in DifferenceGlobals.registered_blocks['img2img_tabs'].children
+        if isinstance(child, gr.TabItem)
+    ]
+    DifferenceGlobals.tab_index = len(img2img_tabs)
 
 
-def register_tabitem_to_tab_list():
-    img2img_tabs = find_f_local_in_stack('img2img_tabs')
-    img2img_selected_tab = find_f_local_in_stack('img2img_selected_tab')
+def grab_img2img_tabs_block():
+    DifferenceGlobals.registered_blocks['img2img_tabs'] = GradioContext.block.parent
 
-    img2img_tabs.append(DifferenceGlobals.img2img_tab)
-    DifferenceGlobals.tab_index = len(img2img_tabs)-1
-    DifferenceGlobals.img2img_tab.select(fn=lambda tabnum=DifferenceGlobals.tab_index: tabnum, inputs=[], outputs=[img2img_selected_tab])
+
+def grab_ui_params_blocks():
+    DifferenceGlobals.registered_blocks['inpaint_params'] = GradioContext.block.parent
+    DifferenceGlobals.registered_blocks['ui_params'] = GradioContext.block.parent.parent

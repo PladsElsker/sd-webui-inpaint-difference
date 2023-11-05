@@ -74,7 +74,7 @@ def compute_diff(base, altered):
 def uncolorize(mask):
     b, g, r = cv2.split(mask)
     average = (r + g + b) // 3
-    return np.repeat(average[:, :, np.newaxis], repeats=3, axis=2)
+    return np.repeat(average[:, :, np.newaxis], repeats=3, axis=-1)
 
 
 def saturate(mask):

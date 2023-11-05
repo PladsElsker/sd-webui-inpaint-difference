@@ -5,6 +5,7 @@ class DifferenceGlobals:
     img2img_tab = None
     tab_index = None
     ui_params = None
+    registered_blocks = {}
 
     base_image = None
     altered_image = None

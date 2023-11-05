@@ -12,8 +12,3 @@ class BlockManager:
 
     def __exit__(self, *args, **kwargs):
         Context.block = self.previous_block
-
-
-class ParentBlock(BlockManager):
-    def __init__(self):
-        super().__init__(Context.block.parent)
