@@ -1,4 +1,6 @@
+[![Powered by sdlib](https://img.shields.io/badge/sdlib-0.0.1-<color>)](https://github.com/ljleb/sdlib)
 # sd-webui-inpaint-difference
+
 ## Overview
 An extension to find the inpaint mask to use based on the difference between two images. It adds an `operation mode` in the `img2img` tab.   
 
