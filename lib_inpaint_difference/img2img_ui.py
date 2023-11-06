@@ -1,3 +1,7 @@
+import sdlib
+from sdlib.sd_webui import img2img_tabs
+from sdlib.function_params import CustomImg2ImgTabParams
+
 import gradio as gr
 from modules.shared import opts
 from modules.ui_components import ToolButton, FormRow
@@ -6,17 +10,20 @@ from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.mask_processing import compute_mask
 
 
-def create_inpaint_difference_ui(tab_manager, ui_params_manager):
-    with tab_manager:
+# @sdlib.add_callback
+def create_inpaint_difference_tab(params: CustomImg2ImgTabParams):
+    DifferenceGlobals.tab_index = params.tab_index
+
+    with gr.TabItem(label='Inpaint difference') as tab:
         # create the ui for the tab here
         with gr.Row():
             DifferenceGlobals.inpaint_img_component = gr.Image(label="Base image", source="upload", interactive=True, type="pil", elem_id="img_inpaint_difference")
-            swap_images = ToolButton('⇆', elem_id='img2img_inpaint_difference_swap_images', tooltip="Swap images.")
+            swap_images = ToolButton('⇆', elem_classes=['img2img_inpaint_difference_swap_images'], tooltip="Swap images.")
             DifferenceGlobals.inpaint_alt_component = gr.Image(label="Altered image", source="upload", interactive=True, type="pil", elem_id="alt_inpaint_difference")
 
         DifferenceGlobals.inpaint_mask_component = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="mask_inpaint_difference", tool="sketch", height=opts.img2img_editor_height, brush_color=opts.img2img_inpaint_mask_brush_color)
 
-    with ui_params_manager:
+    with gr.Group() as ui_params:
         # create the ui for the options that will appear under the tab when it is selected
         with FormRow():
             mask_blur = gr.Slider(label='Mask blur', minimum=0, maximum=64, step=1, value=4, elem_id="inpaint_difference_mask_blur")
@@ -83,10 +90,16 @@ def create_inpaint_difference_ui(tab_manager, ui_params_manager):
         'outputs': []
     }
 
-    tab_manager.block.select(**update_custom_ui_globals_dict)
+    tab.select(**update_custom_ui_globals_dict)
     mask_blur.release(**update_custom_ui_globals_dict)
     mask_dilation.release(**update_custom_ui_globals_dict)
     inpainting_mask_invert.change(**update_custom_ui_globals_dict)
     inpainting_fill.change(**update_custom_ui_globals_dict)
     inpaint_full_res.change(**update_custom_ui_globals_dict)
     inpaint_full_res_padding.release(**update_custom_ui_globals_dict)
+
+    return tab, ui_params
+
+
+def create_img2img_tab():
+    img2img_tabs.create_new_tab(create_inpaint_difference_tab)
