@@ -86,21 +86,17 @@ def dilate(mask, dilation_amount):
     if dilation_amount == 0:
         return mask
 
-    # Convert numpy array to PyTorch tensor
     tensor_mask = torch.from_numpy((mask / 255).astype(np.float32)).permute(2, 0, 1).unsqueeze(0)
 
-    # Convert tensor to GPU tensor if CUDA is available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tensor_mask = tensor_mask.to(device)
 
-    # Define a dilation kernel (structuring element)
     kernel = torch.ones(1, 1, 3, 3).to(device)
 
     tensor_mask_r = tensor_mask[:, 0:1, :, :]
     tensor_mask_g = tensor_mask[:, 1:2, :, :]
     tensor_mask_b = tensor_mask[:, 2:3, :, :]
 
-    # Perform iterative dilation
     for _ in range(dilation_amount):
         tensor_mask_r = (torch.nn.functional.conv2d(tensor_mask_r, kernel, padding=1) > 0).float()
         tensor_mask_g = (torch.nn.functional.conv2d(tensor_mask_g, kernel, padding=1) > 0).float()
@@ -108,7 +104,6 @@ def dilate(mask, dilation_amount):
 
     tensor_mask = torch.cat((tensor_mask_r, tensor_mask_g, tensor_mask_b), dim=1)
 
-    # Convert back to numpy array
     dilated_mask = tensor_mask.squeeze(0).permute(1, 2, 0).cpu().numpy()
 
     return (dilated_mask * 255).astype(np.uint8)
