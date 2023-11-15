@@ -87,7 +87,6 @@ def dilate(mask, dilation_amount):
         return mask
 
     tensor_mask = torch.from_numpy((mask / 255).astype(np.float32)).permute(2, 0, 1).unsqueeze(0)
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tensor_mask = tensor_mask.to(device)
 
