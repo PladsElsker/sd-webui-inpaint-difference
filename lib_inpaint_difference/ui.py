@@ -1,3 +1,6 @@
+import uuid
+from typing import Optional
+
 import gradio as gr
 from modules.shared import opts
 from modules.ui_components import ToolButton, FormRow
@@ -7,7 +10,7 @@ from lib_inpaint_difference.mask_processing import compute_mask
 
 
 class InpaintDifferenceTab:
-    def __init__(self, tab_index):
+    def __init__(self, tab_index: int):
         DifferenceGlobals.tab_index = tab_index
 
         self.inpaint_img_component = None
@@ -26,7 +29,7 @@ class InpaintDifferenceTab:
         with gr.TabItem(label='Inpaint difference') as self.tab:
             with gr.Row():
                 self.inpaint_img_component = gr.Image(label="Base image", source="upload", interactive=True, type="pil", elem_id="img_inpaint_difference")
-                self.swap_images = ToolButton('⇆', elem_classes=['img2img_inpaint_difference_swap_images'], tooltip="Swap images.")
+                self.swap_images = ToolButton(value='⇆', elem_id=f'img2img_inpaint_difference_swap_images_{uuid.uuid4()}', elem_classes=['img2img_inpaint_difference_swap_images'], tooltip="Swap images.")
                 self.inpaint_alt_component = gr.Image(label="Altered image", source="upload", interactive=True, type="pil", elem_id="alt_inpaint_difference")
 
             self.inpaint_mask_component = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="mask_inpaint_difference", tool="sketch", height=opts.img2img_editor_height, brush_color=opts.img2img_inpaint_mask_brush_color)
