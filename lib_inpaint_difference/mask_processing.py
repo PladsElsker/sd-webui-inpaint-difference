@@ -85,21 +85,6 @@ def dilate(mask, dilation_amount):
     if dilation_amount == 0:
         return mask
 
-    b, g, r = cv2.split(mask)
-
-    kernel = np.ones((3, 3), np.uint8)
-
-    dilated_b = cv2.dilate(b, kernel, iterations=dilation_amount)
-    dilated_g = cv2.dilate(g, kernel, iterations=dilation_amount)
-    dilated_r = cv2.dilate(r, kernel, iterations=dilation_amount)
-
-    return np.stack((dilated_r, dilated_g, dilated_b), axis=-1)
-
-
-def dilate_pytorch(mask, dilation_amount):
-    if dilation_amount == 0:
-        return mask
-
     # Convert numpy array to PyTorch tensor
     tensor_mask = torch.from_numpy((mask / 255).astype(np.float32)).permute(2, 0, 1).unsqueeze(0)
 
