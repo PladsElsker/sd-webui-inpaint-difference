@@ -1,5 +1,4 @@
 import uuid
-from typing import Optional
 
 import gradio as gr
 from modules.shared import opts
