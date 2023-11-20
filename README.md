@@ -1,4 +1,6 @@
+[![Powered by sdwss](https://img.shields.io/badge/sdwss-0.0.1-<color>)](https://pypi.org/project/sdwss/)
 # sd-webui-inpaint-difference
+
 ## Overview
 An extension to find the inpaint mask to use based on the difference between two images. It adds an `operation mode` in the `img2img` tab.   
 

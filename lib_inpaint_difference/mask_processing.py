@@ -1,8 +1,7 @@
-import cv2
-
 import torch
 import numpy as np
 from PIL import Image
+import cv2
 
 from lib_inpaint_difference.globals import DifferenceGlobals
 

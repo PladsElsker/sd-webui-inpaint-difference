@@ -1,5 +1,4 @@
 import gradio as gr
-from gradio.context import Context as GradioContext
 
 from modules import img2img
 
@@ -44,21 +43,3 @@ def hijack_img2img_processing():
             img2img_batch_png_info_props, img2img_batch_png_info_dir, request, *args)
 
     img2img.img2img = hijack_func
-
-
-def register_tab_index():
-    img2img_tabs = [
-        child
-        for child in DifferenceGlobals.registered_blocks['img2img_tabs'].children
-        if isinstance(child, gr.TabItem)
-    ]
-    DifferenceGlobals.tab_index = len(img2img_tabs)
-
-
-def grab_img2img_tabs_block():
-    DifferenceGlobals.registered_blocks['img2img_tabs'] = GradioContext.block.parent
-
-
-def grab_ui_params_blocks():
-    DifferenceGlobals.registered_blocks['inpaint_params'] = GradioContext.block.parent
-    DifferenceGlobals.registered_blocks['ui_params'] = GradioContext.block.parent.parent

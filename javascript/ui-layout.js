@@ -7,8 +7,8 @@
 
 
     function onInpaintDifferenceTabLoaded(callback) {
-        const swapButton = getSwapButton();
-        if (swapButton === null) {
+        const swapButtons = getSwapButtons();
+        if (swapButtons === null || swapButtons.length === 0) {
             setTimeout(() => { onInpaintDifferenceTabLoaded(callback); }, INPAINT_DIFFERENCE_POLLING_TIMEOUT);
             return;
         }
@@ -18,15 +18,17 @@
 
 
     function setupCenterStyle() {
-        const swapButton = getSwapButton();
-        const form = swapButton.parentElement;
-        form.style.position = 'relative';
-        form.style.flexGrow = '0';
-        form.style.padding = '10px';
+        const swapButtons = getSwapButtons();
+        for(const swapButton of swapButtons) {
+            const form = swapButton.parentElement;
+            form.style.position = 'relative';
+            form.style.flexGrow = '0';
+            form.style.padding = '10px';
+        }
     }
 
 
-    function getSwapButton() {
-        return document.querySelector('#img2img_inpaint_difference_swap_images');
+    function getSwapButtons() {
+        return document.querySelectorAll('.img2img_inpaint_difference_swap_images');
     }
 })();
