@@ -1,5 +1,5 @@
 import launch
 
 
-if not launch.is_installed('sdlib'):
-    launch.run_pip(f'install sdlib', f"sdlib for sd-webui-inpaint-difference")
+if not launch.is_installed('sdwss'):
+    launch.run_pip(f'install sdwss', f"sdwss for sd-webui-inpaint-difference")
