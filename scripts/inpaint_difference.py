@@ -6,10 +6,8 @@ from lib_inpaint_difference.webui_callbacks import setup_script_callbacks
 from lib_inpaint_difference.ui import InpaintDifferenceTab
 
 
-plugin = sdwss.register_plugin("inpaint-difference")
-
-
 if DifferenceGlobals.is_extension_enabled:
+    plugin = sdwss.register_plugin("inpaint-difference")
     plugin.append_component(InpaintDifferenceTab, name='create_img2img_tab')
     hijack_img2img_processing()
 
