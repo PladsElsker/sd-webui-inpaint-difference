@@ -1,4 +1,3 @@
-[![Powered by sdwss](https://img.shields.io/badge/sdwss-0.0.1-<color>)](https://pypi.org/project/sdwss/)
 # sd-webui-inpaint-difference
 
 ## Overview
