@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import gradio as gr
 from gradio.context import Context as GradioContext
 from gradio.blocks import Block as GradioBlock
 from lib_inpaint_difference.ui import InpaintDifferenceTab
