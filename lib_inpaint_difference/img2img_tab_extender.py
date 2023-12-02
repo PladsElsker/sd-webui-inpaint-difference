@@ -68,18 +68,12 @@ class Img2imgTabExtender:
 
     @classmethod
     def register_default_amount_of_tabs(cls):
-        cls.amount_of_default_tabs = len(
-            [
-                child
-                for child in cls.img2img_tabs_block.children
-                if isinstance(child, gr.TabItem)
-            ]
-        )
+        cls.amount_of_default_tabs = cls._find_new_tab_index()
 
     @classmethod
     def create_custom_tabs(cls):
         for tab_class in [InpaintDifferenceTab]:
-            tab_index = cls._find_tab_index()
+            tab_index = cls._find_new_tab_index()
             custom_tab_object = tab_class(tab_index)
 
             with GradioContextSwitch(cls.img2img_tabs_block):
@@ -123,7 +117,7 @@ class Img2imgTabExtender:
                     )
 
     @classmethod
-    def _find_tab_index(cls):
+    def _find_new_tab_index(cls):
         img2img_tabs = [
             child
             for child in cls.img2img_tabs_block.children
