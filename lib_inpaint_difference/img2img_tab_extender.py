@@ -38,14 +38,21 @@ class Img2imgTabExtender:
 
         if elem_id == 'img2img_batch_inpaint_mask_dir':
             cls.register_img2img_tabs_block(component)
+            cls.create_custom_tabs_if_initialized()
 
         if elem_id == 'img2img_mask_blur':
             cls.register_inpaint_params_block(component)
             cls.register_custom_ui_params_block(component)
-            cls.register_default_amount_of_tabs()
+            cls.create_custom_tabs_if_initialized()
 
-            cls.create_custom_tabs()
-            cls.setup_navigation_events()
+    @classmethod
+    def create_custom_tabs_if_initialized(cls):
+        if None in [cls.img2img_tabs_block, cls.inpaint_params_block, cls.ui_params_block]:
+            return
+
+        cls.register_default_amount_of_tabs()
+        cls.create_custom_tabs()
+        cls.setup_navigation_events()
 
     @classmethod
     def register_img2img_tabs_block(cls, component):
