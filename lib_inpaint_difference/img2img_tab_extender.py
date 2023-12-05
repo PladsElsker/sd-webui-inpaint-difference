@@ -79,7 +79,7 @@ class Img2imgTabExtender:
             with GradioContextSwitch(cls.img2img_tabs_block):
                 custom_tab_object.tab()
             with GradioContextSwitch(cls.ui_params_block):
-                with gr.Group() as tab_ui_params:
+                with gr.Group(visible=False) as tab_ui_params:
                     custom_tab_object.section()
 
             custom_tab_object.gradio_events()
