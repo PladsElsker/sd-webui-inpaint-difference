@@ -42,7 +42,7 @@ def hijack_img2img_processing():
 
 
 @one_time_callable
-def hijack_create_ui():
+def hijack_ui_settings():
     original_ui_settings__init__ = ui_loadsave.UiLoadsave.__init__
 
     def hijack__init__(*args, **kwargs):
