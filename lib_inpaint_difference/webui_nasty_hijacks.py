@@ -1,9 +1,10 @@
 import gradio as gr
 
-from modules import img2img
+from modules import img2img, ui_loadsave
 
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.one_time_callable import one_time_callable
+from lib_inpaint_difference.img2img_tab_extender import Img2imgTabExtender
 
 
 @one_time_callable
@@ -18,7 +19,7 @@ def hijack_img2img_processing():
             resize_mode: int, inpaint_full_res: bool, inpaint_full_res_padding: int,
             inpainting_mask_invert: int, img2img_batch_input_dir: str, img2img_batch_output_dir: str,
             img2img_batch_inpaint_mask_dir: str, override_settings_texts, img2img_batch_use_png_info: bool,
-            img2img_batch_png_info_props: list, img2img_batch_png_info_dir: str, request: gr.Request, *args
+            img2img_batch_png_info_props: list, img2img_batch_png_info_dir: str, request: gr.Request, *args,
     ):
         if mode == DifferenceGlobals.tab_index:
             mode = 2  # use the "inpaint" operation mode for processing
@@ -26,11 +27,6 @@ def hijack_img2img_processing():
                 'image': DifferenceGlobals.altered_image,
                 'mask': DifferenceGlobals.generated_mask
             }
-            mask_blur = DifferenceGlobals.mask_blur
-            inpainting_mask_invert = DifferenceGlobals.inpainting_mask_invert
-            inpainting_fill = DifferenceGlobals.inpainting_fill
-            inpaint_full_res = DifferenceGlobals.inpaint_full_res
-            inpaint_full_res_padding = DifferenceGlobals.inpaint_full_res_padding
 
         return original_img2img_processing(id_task, mode, prompt, negative_prompt, prompt_styles, init_img, sketch,
             init_img_with_mask, inpaint_color_sketch, inpaint_color_sketch_orig, init_img_inpaint,
@@ -43,3 +39,14 @@ def hijack_img2img_processing():
             img2img_batch_png_info_props, img2img_batch_png_info_dir, request, *args)
 
     img2img.img2img = hijack_func
+
+
+@one_time_callable
+def hijack_create_ui():
+    original_ui_settings__init__ = ui_loadsave.UiLoadsave.__init__
+
+    def hijack__init__(*args, **kwargs):
+        Img2imgTabExtender.create_custom_tabs()
+        return original_ui_settings__init__(*args, **kwargs)
+
+    ui_loadsave.UiLoadsave.__init__ = hijack__init__

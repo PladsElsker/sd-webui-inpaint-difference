@@ -1,33 +1,25 @@
 from dataclasses import dataclass
 import functools
+
 import gradio as gr
-from gradio.context import Context as GradioContext
-from gradio.blocks import Block as GradioBlock
+from lib_inpaint_difference.gradio_helpers import GradioContextSwitch
 from lib_inpaint_difference.ui import InpaintDifferenceTab
 
 
-class GradioContextSwitch:
-    def __init__(self, block):
-        self.block = block
-
-    def __enter__(self):
-        self.previous_block = GradioContext.block
-        GradioContext.block = self.block
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        GradioContext.block = self.previous_block
+NEW_TAB_CLASSES = [
+    InpaintDifferenceTab,
+]
 
 
 @dataclass
 class TabData:
     tab_index: int
-    ui_params: GradioBlock
+    tab_class: type
+    tab_object: object
 
 
 class Img2imgTabExtender:
     img2img_tabs_block = None
-    ui_params_block = None
     inpaint_params_block = None
     amount_of_default_tabs = None
     tab_data_list = []
@@ -38,21 +30,11 @@ class Img2imgTabExtender:
 
         if elem_id == 'img2img_batch_inpaint_mask_dir':
             cls.register_img2img_tabs_block(component)
-            cls.create_custom_tabs_if_initialized()
 
         if elem_id == 'img2img_mask_blur':
             cls.register_inpaint_params_block(component)
-            cls.register_custom_ui_params_block(component)
-            cls.create_custom_tabs_if_initialized()
 
-    @classmethod
-    def create_custom_tabs_if_initialized(cls):
-        if None in [cls.img2img_tabs_block, cls.inpaint_params_block, cls.ui_params_block]:
-            return
-
-        cls.register_default_amount_of_tabs()
-        cls.create_custom_tabs()
-        cls.setup_navigation_events()
+        cls.register_requested_elem_ids(component, elem_id)
 
     @classmethod
     def register_img2img_tabs_block(cls, component):
@@ -63,58 +45,67 @@ class Img2imgTabExtender:
         cls.inpaint_params_block = component.parent.parent
 
     @classmethod
-    def register_custom_ui_params_block(cls, component):
-        cls.ui_params_block = component.parent.parent.parent
+    def register_requested_elem_ids(cls, component, elem_id):
+        if elem_id is None:
+            return
+
+        for tab_class in NEW_TAB_CLASSES:
+            if not hasattr(tab_class, 'requested_elem_ids'):
+                continue
+
+            if not hasattr(tab_class, '_registered_elem_ids'):
+                tab_class._registered_elem_ids = dict()
+
+            if elem_id in tab_class.requested_elem_ids:
+                tab_class._registered_elem_ids[elem_id] = component
+
+    @classmethod
+    def create_custom_tabs(cls):
+        cls.register_default_amount_of_tabs()
+
+        for tab_class in NEW_TAB_CLASSES:
+            tab_index = cls._find_new_tab_index()
+            custom_tab_object = tab_class(tab_index)
+            registered_components = getattr(tab_class, "_registered_elem_ids", None)
+
+            with GradioContextSwitch(cls.img2img_tabs_block):
+                custom_tab_object.tab()
+            with GradioContextSwitch(cls.inpaint_params_block):
+                custom_tab_object.section(registered_components)
+
+            cls.register_custom_tab_data(tab_index, tab_class, custom_tab_object)
+
+            with GradioContextSwitch(cls.inpaint_params_block):
+                img2img_tabs = cls._get_img2img_tabs()
+                cls.setup_navigation_events(img2img_tabs)
+                for tab_data in cls.tab_data_list:
+                    tab_data.tab_object.gradio_events(img2img_tabs)
 
     @classmethod
     def register_default_amount_of_tabs(cls):
         cls.amount_of_default_tabs = cls._find_new_tab_index()
 
     @classmethod
-    def create_custom_tabs(cls):
-        for tab_class in [InpaintDifferenceTab]:
-            tab_index = cls._find_new_tab_index()
-            custom_tab_object = tab_class(tab_index)
-
-            with GradioContextSwitch(cls.img2img_tabs_block):
-                custom_tab_object.tab()
-            with GradioContextSwitch(cls.ui_params_block):
-                with gr.Group(visible=False) as tab_ui_params:
-                    custom_tab_object.section()
-
-            custom_tab_object.gradio_events()
-
-            cls.register_custom_tab_data(tab_index, tab_ui_params)
+    def register_custom_tab_data(cls, tab_index, tab_class, tab_object):
+        cls.tab_data_list.append(TabData(tab_index, tab_class, tab_object))
 
     @classmethod
-    def register_custom_tab_data(cls, tab_index, tab_ui_params):
-        cls.tab_data_list.append(TabData(tab_index, tab_ui_params))
+    def setup_navigation_events(cls, img2img_tabs):
+        something = zip(img2img_tabs[cls.amount_of_default_tabs:], cls.tab_data_list, strict=True)
+        for tab_block, custom_tab in something:
+            def update_func(custom_tab):
+                should_show_inpaint_params = getattr(custom_tab.tab_class, 'show_inpaint_params', True)
+                return gr.update(visible=should_show_inpaint_params)
 
-    @classmethod
-    def setup_navigation_events(cls):
-        img2img_tabs = [
-            child
-            for child in cls.img2img_tabs_block.children
-            if isinstance(child, gr.TabItem)
-        ]
-        for custom_tab in cls.tab_data_list:
-            for i, tab in enumerate(img2img_tabs):
-                def update_func(tab_id, custom_tab_data):
-                    return gr.update(visible=tab_id == custom_tab_data.tab_index)
+            func_dict = dict(
+                fn=functools.partial(update_func, custom_tab=custom_tab),
+                inputs=[],
+                outputs=[
+                    cls.inpaint_params_block
+                ]
+            )
 
-                tab.select(
-                    fn=functools.partial(update_func, tab_id=i, custom_tab_data=custom_tab),
-                    inputs=[],
-                    outputs=[custom_tab.ui_params]
-                )
-
-                # extend the behavior of hiding the default inpaint_params
-                if i >= cls.amount_of_default_tabs:
-                    tab.select(
-                        fn=lambda tab_id=i: gr.update(visible=False),
-                        inputs=[],
-                        outputs=[cls.inpaint_params_block]
-                    )
+            tab_block.select(**func_dict)
 
     @classmethod
     def _find_new_tab_index(cls):
@@ -124,3 +115,11 @@ class Img2imgTabExtender:
             if isinstance(child, gr.TabItem)
         ]
         return len(img2img_tabs)
+
+    @classmethod
+    def _get_img2img_tabs(cls):
+        return [
+            child
+            for child in cls.img2img_tabs_block.children
+            if isinstance(child, gr.TabItem)
+        ]

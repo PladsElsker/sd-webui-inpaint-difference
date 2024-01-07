@@ -1,15 +1,21 @@
+import functools
 import uuid
 
 import gradio as gr
 from modules.shared import opts
-from modules.ui_components import ToolButton, FormRow
+from modules.ui_components import ToolButton
 
 from lib_inpaint_difference.globals import DifferenceGlobals
+from lib_inpaint_difference.gradio_helpers import GradioContextSwitch
 from lib_inpaint_difference.mask_processing import compute_mask
 
 
 class InpaintDifferenceTab:
+    show_inpaint_params = True
+    requested_elem_ids = ['img2img_mask_blur', 'img2img_mask_alpha']
+
     def __init__(self, tab_index: int):
+        self.tab_index = tab_index
         DifferenceGlobals.tab_index = tab_index
 
         self.inpaint_img_component = None
@@ -18,11 +24,8 @@ class InpaintDifferenceTab:
         self.swap_images = None
 
         self.mask_blur = None
+        self.mask_alpha = None
         self.mask_dilation = None
-        self.inpainting_mask_invert = None
-        self.inpainting_fill = None
-        self.inpaint_full_res = None
-        self.inpaint_full_res_padding = None
 
     def tab(self):
         with gr.TabItem(label='Inpaint difference') as self.tab:
@@ -34,26 +37,37 @@ class InpaintDifferenceTab:
             mask_component_height = getattr(opts, 'img2img_editor_height', 512)  # 512 is for SD.Next
             self.inpaint_mask_component = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="mask_inpaint_difference", height=mask_component_height)
 
-    def section(self):
-        with gr.Group():
-            with FormRow():
-                self.mask_blur = gr.Slider(label='Mask blur', minimum=0, maximum=64, step=1, value=4, elem_id="inpaint_difference_mask_blur")
-                self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
+    def section(self, components):
+        self.mask_blur = components["img2img_mask_blur"]
+        self.mask_alpha = components["img2img_mask_alpha"]
 
-            with FormRow():
-                self.inpainting_mask_invert = gr.Radio(label='Mask mode', choices=['Inpaint masked', 'Inpaint not masked'], value='Inpaint masked', type="index", elem_id="inpaint_difference_mask_mode")
+        with(GradioContextSwitch(self.mask_alpha.parent)):
+            self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
 
-            with FormRow():
-                self.inpainting_fill = gr.Radio(label='Masked content', choices=['fill', 'original', 'latent noise', 'latent nothing'], value='original', type="index", elem_id="inpaint_difference_inpainting_fill")
+    def gradio_events(self, img2img_tabs):
+        self._update_sliders_visibility(img2img_tabs)
+        self._update_mask()
+        self._swap_images_tool()
 
-            with FormRow():
-                with gr.Column():
-                    self.inpaint_full_res = gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type="index", value="Whole picture", elem_id="inpaint_difference_inpaint_full_res")
+    def _update_sliders_visibility(self, img2img_tabs):
+        for i, tab in enumerate(img2img_tabs):
+            def sliders_visibility_func(tab_id):
+                is_this_tab = tab_id == self.tab_index
+                mask_dilation_update = gr.update(visible=is_this_tab)
+                mask_alpha_update = gr.update(visible=False) if is_this_tab else gr.update()
+                return mask_dilation_update, mask_alpha_update
 
-                with gr.Column(scale=4):
-                    self.inpaint_full_res_padding = gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32, elem_id="inpaint_difference_inpaint_full_res_padding")
+            sliders_visibility_dict = dict(
+                fn=functools.partial(sliders_visibility_func, tab_id=i),
+                inputs=[],
+                outputs=[
+                    self.mask_dilation,
+                    self.mask_alpha,
+                ]
+            )
+            tab.select(**sliders_visibility_dict)
 
-    def gradio_events(self):
+    def _update_mask(self):
         compute_mask_dict = {
             'fn': compute_mask,
             'inputs': [
@@ -74,6 +88,7 @@ class InpaintDifferenceTab:
         self.mask_blur.release(**compute_mask_dict)
         self.mask_dilation.release(**compute_mask_dict)
 
+    def _swap_images_tool(self):
         def swap_images_func(img, alt, blur_amount, dilation_amount):
             visual_mask = compute_mask(alt, img, blur_amount, dilation_amount)
             DifferenceGlobals.base_image = alt
@@ -82,39 +97,15 @@ class InpaintDifferenceTab:
 
         self.swap_images.click(
             fn=swap_images_func,
-            inputs=compute_mask_dict['inputs'],
+            inputs=[
+                self.inpaint_img_component,
+                self.inpaint_alt_component,
+                self.mask_blur,
+                self.mask_dilation,
+            ],
             outputs=[
                 self.inpaint_img_component,
                 self.inpaint_alt_component,
                 self.inpaint_mask_component,
             ]
         )
-
-        def update_ui_params_globals(mask_blur, mask_dilation, inpainting_mask_invert, inpainting_fill, inpaint_full_res, inpaint_full_res_padding):
-            DifferenceGlobals.mask_blur = mask_blur
-            DifferenceGlobals.mask_dilation = mask_dilation
-            DifferenceGlobals.inpainting_mask_invert = inpainting_mask_invert
-            DifferenceGlobals.inpainting_fill = inpainting_fill
-            DifferenceGlobals.inpaint_full_res = inpaint_full_res
-            DifferenceGlobals.inpaint_full_res_padding = inpaint_full_res_padding
-
-        update_custom_ui_globals_dict = {
-            'fn': update_ui_params_globals,
-            'inputs': [
-                self.mask_blur,
-                self.mask_dilation,
-                self.inpainting_mask_invert,
-                self.inpainting_fill,
-                self.inpaint_full_res,
-                self.inpaint_full_res_padding
-            ],
-            'outputs': []
-        }
-
-        self.tab.select(**update_custom_ui_globals_dict)
-        self.mask_blur.release(**update_custom_ui_globals_dict)
-        self.mask_dilation.release(**update_custom_ui_globals_dict)
-        self.inpainting_mask_invert.change(**update_custom_ui_globals_dict)
-        self.inpainting_fill.change(**update_custom_ui_globals_dict)
-        self.inpaint_full_res.change(**update_custom_ui_globals_dict)
-        self.inpaint_full_res_padding.release(**update_custom_ui_globals_dict)
