@@ -91,8 +91,8 @@ class Img2imgTabExtender:
 
     @classmethod
     def setup_navigation_events(cls, img2img_tabs):
-        something = zip(img2img_tabs[cls.amount_of_default_tabs:], cls.tab_data_list, strict=True)
-        for tab_block, custom_tab in something:
+        block_data_iterator = zip(img2img_tabs[cls.amount_of_default_tabs:], cls.tab_data_list, strict=True)
+        for tab_block, custom_tab in block_data_iterator:
             def update_func(custom_tab):
                 should_show_inpaint_params = getattr(custom_tab.tab_class, 'show_inpaint_params', True)
                 return gr.update(visible=should_show_inpaint_params)
