@@ -13,7 +13,6 @@ def _find_root_block(block):
 class GradioContextSwitch:
     def __init__(self, block):
         self.block = block
-        self.root_block = gradio.context.Context.root_block
         self.root_block = _find_root_block(block)
 
     def __enter__(self):
