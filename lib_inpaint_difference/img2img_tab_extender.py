@@ -62,6 +62,7 @@ class Img2imgTabExtender:
     @classmethod
     def create_custom_tabs(cls):
         cls.register_default_amount_of_tabs()
+        cls.tab_data_list = []
 
         for tab_class in NEW_TAB_CLASSES:
             tab_index = cls._find_new_tab_index()
