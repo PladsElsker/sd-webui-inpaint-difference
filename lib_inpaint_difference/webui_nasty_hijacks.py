@@ -25,7 +25,7 @@ def hijack_img2img_processing():
             mode = 2  # use the "inpaint" operation mode for processing
             init_img_with_mask = {
                 'image': DifferenceGlobals.altered_image,
-                'mask': DifferenceGlobals.generated_mask
+                'mask': DifferenceGlobals.generated_mask,
             }
 
         return original_img2img_processing(id_task, mode, prompt, negative_prompt, prompt_styles, init_img, sketch,

@@ -50,14 +50,14 @@ class InpaintDifferenceTab:
         self._swap_images_tool()
 
     def _update_sliders_visibility(self, img2img_tabs):
-        for i, tab in enumerate(img2img_tabs):
-            def sliders_visibility_func(tab_id):
-                is_this_tab = tab_id == self.tab_index
-                mask_dilation_update = gr.update(visible=is_this_tab)
-                mask_alpha_update = gr.update(visible=False) if is_this_tab else gr.update()
-                return mask_dilation_update, mask_alpha_update
+        def sliders_visibility_func(tab_id):
+            is_this_tab = tab_id == self.tab_index
+            mask_dilation_update = gr.update(visible=is_this_tab)
+            mask_alpha_update = gr.update(visible=False) if is_this_tab else gr.update()
+            return mask_dilation_update, mask_alpha_update
 
-            sliders_visibility_dict = dict(
+        for i, tab in enumerate(img2img_tabs):
+            tab.select(
                 fn=functools.partial(sliders_visibility_func, tab_id=i),
                 inputs=[],
                 outputs=[
@@ -65,7 +65,6 @@ class InpaintDifferenceTab:
                     self.mask_alpha,
                 ]
             )
-            tab.select(**sliders_visibility_dict)
 
     def _update_mask(self):
         compute_mask_dict = {
