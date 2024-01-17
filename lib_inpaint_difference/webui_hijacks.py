@@ -1,10 +1,9 @@
 import gradio as gr
 
-from modules import img2img, ui_loadsave
+from modules import img2img
 
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.one_time_callable import one_time_callable
-from lib_inpaint_difference.img2img_tab_extender import Img2imgTabExtender
 
 
 @one_time_callable
@@ -39,14 +38,3 @@ def hijack_img2img_processing():
             img2img_batch_png_info_props, img2img_batch_png_info_dir, request, *args)
 
     img2img.img2img = hijack_func
-
-
-@one_time_callable
-def hijack_ui_settings():
-    original_ui_settings__init__ = ui_loadsave.UiLoadsave.__init__
-
-    def hijack__init__(*args, **kwargs):
-        Img2imgTabExtender.create_custom_tabs()
-        return original_ui_settings__init__(*args, **kwargs)
-
-    ui_loadsave.UiLoadsave.__init__ = hijack__init__

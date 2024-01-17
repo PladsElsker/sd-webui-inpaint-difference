@@ -1,16 +1,17 @@
 import functools
 import uuid
-
 import gradio as gr
+
+from sdwi2iextender import OperationMode, gradio_helpers
+
 from modules.shared import opts
 from modules.ui_components import ToolButton
 
 from lib_inpaint_difference.globals import DifferenceGlobals
-from lib_inpaint_difference.gradio_helpers import GradioContextSwitch
 from lib_inpaint_difference.mask_processing import compute_mask
 
 
-class InpaintDifferenceTab:
+class InpaintDifferenceTab(OperationMode):
     show_inpaint_params = True
     requested_elem_ids = ['img2img_mask_blur', 'img2img_mask_alpha']
 
@@ -41,7 +42,7 @@ class InpaintDifferenceTab:
         self.mask_blur = components["img2img_mask_blur"]
         self.mask_alpha = components["img2img_mask_alpha"]
 
-        with(GradioContextSwitch(self.mask_alpha.parent)):
+        with(gradio_helpers.GradioContextSwitch(self.mask_alpha.parent)):
             self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
 
     def gradio_events(self, img2img_tabs):
