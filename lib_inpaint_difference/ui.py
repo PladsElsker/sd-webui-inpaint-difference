@@ -1,16 +1,18 @@
 import functools
 import uuid
-
 import gradio as gr
+
+from sdwi2iextender import OperationMode
+from sdwi2iextender.gradio_helpers import GradioContextSwitch
+
 from modules.shared import opts
 from modules.ui_components import ToolButton
 
 from lib_inpaint_difference.globals import DifferenceGlobals
-from lib_inpaint_difference.gradio_helpers import GradioContextSwitch
 from lib_inpaint_difference.mask_processing import compute_mask
 
 
-class InpaintDifferenceTab:
+class InpaintDifferenceTab(OperationMode):
     show_inpaint_params = True
     requested_elem_ids = ['img2img_mask_blur', 'img2img_mask_alpha']
 
