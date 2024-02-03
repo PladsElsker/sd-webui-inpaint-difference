@@ -80,7 +80,7 @@ def uncolorize(mask):
 
 
 def saturate(mask, difference_threshold):
-    return np.where(mask/255 > difference_threshold, 255.0, 0.0)
+    return np.where(mask/255 > 1 - difference_threshold, 255.0, 0.0)
 
 
 def dilate(mask, dilation_amount):

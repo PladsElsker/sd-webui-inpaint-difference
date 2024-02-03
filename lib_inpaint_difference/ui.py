@@ -49,7 +49,7 @@ class InpaintDifferenceTab(OperationMode):
         inpaint_block = self.mask_alpha.parent.parent.parent
         with GradioContextSwitch(inpaint_block):
             with FormRow():
-                self.difference_threshold = gr.Slider(label='Difference threshold', maximum=1, step=0.01, value=0, elem_id='inpaint_difference_difference_threshold')
+                self.difference_threshold = gr.Slider(label='Difference threshold', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_difference_threshold')
         
         inpaint_block.children[1:1], inpaint_block.children[-1:] = inpaint_block.children[-1:], inpaint_block.children[1:1]
 
