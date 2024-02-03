@@ -11,6 +11,7 @@ def compute_mask(
         altered_img,
         blur_amount,
         dilation_amount,
+        difference_threshold,
 ):
     DifferenceGlobals.base_image = base_img
     DifferenceGlobals.altered_image = altered_img
@@ -23,7 +24,7 @@ def compute_mask(
     base = np.array(base_img).astype(np.int32)
     altered = np.array(altered_img).astype(np.int32)
 
-    img2img_processing_mask = compute_base_mask(base, altered, dilation_amount)
+    img2img_processing_mask = compute_base_mask(base, altered, dilation_amount, difference_threshold)
     visual_mask = compute_visual_mask(altered, img2img_processing_mask, blur_amount)
     return Image.fromarray(visual_mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
 
@@ -44,10 +45,11 @@ def compute_base_mask(
         base,
         altered,
         dilation_amount,
+        difference_threshold,
 ):
     mask = compute_diff(base, altered)
     mask = uncolorize(mask)
-    mask = saturate(mask)
+    mask = saturate(mask, difference_threshold)
     mask = dilate(mask, dilation_amount)
 
     mask_pil = Image.fromarray(mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
@@ -77,8 +79,8 @@ def uncolorize(mask):
     return np.repeat(average[:, :, np.newaxis], repeats=3, axis=-1)
 
 
-def saturate(mask):
-    return np.ceil(mask/255) * 255
+def saturate(mask, difference_threshold):
+    return np.where(mask/255 > difference_threshold, 255.0, 0.0)
 
 
 def dilate(mask, dilation_amount):
