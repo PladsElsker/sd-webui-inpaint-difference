@@ -133,3 +133,4 @@ class InpaintDifferenceTab(OperationMode):
 
     def _update_resize_to_slider_dimensions(self):
         self.inpaint_mask_component.change(fn=lambda: None, _js="updateImg2imgResizeToTextAfterChangingImage", inputs=[], outputs=[], show_progress=False)
+    
