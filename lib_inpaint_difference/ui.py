@@ -48,8 +48,12 @@ class InpaintDifferenceTab(OperationMode):
         
         inpaint_block = self.mask_alpha.parent.parent.parent
         with GradioContextSwitch(inpaint_block):
-            with FormRow():
-                self.difference_threshold = gr.Slider(label='Difference threshold', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_difference_threshold')
+            with gr.Group() as self.inpaint_difference_ui_params:
+                with FormRow():
+                    self.difference_threshold = gr.Slider(label='Difference threshold', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_difference_threshold')
+                    
+                with FormRow():
+                    self.contours_only = gr.Checkbox(label='Contours only', value=False, elem_id='inpaint_difference_contours_only')
         
         inpaint_block.children[1:1], inpaint_block.children[-1:] = inpaint_block.children[-1:], inpaint_block.children[1:1]
 
@@ -57,14 +61,15 @@ class InpaintDifferenceTab(OperationMode):
         self._update_sliders_visibility(img2img_tabs)
         self._update_mask()
         self._swap_images_tool()
+        self._update_resize_to_slider_dimensions()
 
     def _update_sliders_visibility(self, img2img_tabs):
         def sliders_visibility_func(tab_id):
             is_this_tab = tab_id == self.tab_index
             mask_dilation_update = gr.update(visible=is_this_tab)
-            difference_threshold_update = gr.update(visible=is_this_tab)
+            inpaint_difference_ui_params_update = gr.update(visible=is_this_tab)
             mask_alpha_update = gr.update(visible=False) if is_this_tab else gr.update()
-            return mask_dilation_update, difference_threshold_update, mask_alpha_update
+            return mask_dilation_update, inpaint_difference_ui_params_update, mask_alpha_update
 
         for i, tab in enumerate(img2img_tabs):
             tab.select(
@@ -72,7 +77,7 @@ class InpaintDifferenceTab(OperationMode):
                 inputs=[],
                 outputs=[
                     self.mask_dilation,
-                    self.difference_threshold,
+                    self.inpaint_difference_ui_params,
                     self.mask_alpha,
                 ]
             )
@@ -86,6 +91,7 @@ class InpaintDifferenceTab(OperationMode):
                 self.mask_blur,
                 self.mask_dilation,
                 self.difference_threshold,
+                self.contours_only,
             ],
             'outputs': [
                 self.inpaint_mask_component
@@ -99,10 +105,11 @@ class InpaintDifferenceTab(OperationMode):
         self.mask_blur.release(**compute_mask_dict)
         self.mask_dilation.release(**compute_mask_dict)
         self.difference_threshold.release(**compute_mask_dict)
+        self.contours_only.change(**compute_mask_dict)
 
     def _swap_images_tool(self):
-        def swap_images_func(img, alt, blur_amount, dilation_amount, difference_threshold):
-            visual_mask = compute_mask(alt, img, blur_amount, dilation_amount, difference_threshold)
+        def swap_images_func(img, alt, *args):
+            visual_mask = compute_mask(alt, img, *args)
             DifferenceGlobals.base_image = alt
             DifferenceGlobals.altered_image = img
             return gr.update(value=alt), gr.update(value=img), gr.update(value=visual_mask)
@@ -115,6 +122,7 @@ class InpaintDifferenceTab(OperationMode):
                 self.mask_blur,
                 self.mask_dilation,
                 self.difference_threshold,
+                self.contours_only,
             ],
             outputs=[
                 self.inpaint_img_component,
@@ -122,3 +130,6 @@ class InpaintDifferenceTab(OperationMode):
                 self.inpaint_mask_component,
             ]
         )
+
+    def _update_resize_to_slider_dimensions(self):
+        self.inpaint_mask_component.change(fn=lambda: None, _js="updateImg2imgResizeToTextAfterChangingImage", inputs=[], outputs=[], show_progress=False)

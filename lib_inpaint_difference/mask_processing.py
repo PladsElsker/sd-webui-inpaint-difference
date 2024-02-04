@@ -12,6 +12,7 @@ def compute_mask(
         blur_amount,
         dilation_amount,
         difference_threshold,
+        contours_only,
 ):
     DifferenceGlobals.base_image = base_img
     DifferenceGlobals.altered_image = altered_img
@@ -24,7 +25,7 @@ def compute_mask(
     base = np.array(base_img).astype(np.int32)
     altered = np.array(altered_img).astype(np.int32)
 
-    img2img_processing_mask = compute_base_mask(base, altered, dilation_amount, difference_threshold)
+    img2img_processing_mask = compute_base_mask(base, altered, dilation_amount, difference_threshold, contours_only)
     visual_mask = compute_visual_mask(altered, img2img_processing_mask, blur_amount)
     return Image.fromarray(visual_mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
 
@@ -46,10 +47,12 @@ def compute_base_mask(
         altered,
         dilation_amount,
         difference_threshold,
+        contours_only,
 ):
     mask = compute_diff(base, altered)
     mask = uncolorize(mask)
     mask = saturate(mask, difference_threshold)
+    mask = extract_contours(mask, contours_only)
     mask = dilate(mask, dilation_amount)
 
     mask_pil = Image.fromarray(mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
@@ -81,6 +84,28 @@ def uncolorize(mask):
 
 def saturate(mask, difference_threshold):
     return np.where(mask/255 > 1 - difference_threshold, 255.0, 0.0)
+
+
+def extract_contours(mask, contours_only):
+    if not contours_only:
+        return mask
+
+    output_mask = mask.copy().astype(np.uint8)
+
+    for i in range(mask.shape[2]):
+        mask_comp = output_mask[:, :, i]
+        _, threshold = cv2.threshold(mask_comp, 127, 255, cv2.THRESH_BINARY)
+        contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours_img = np.zeros_like(mask_comp)
+        cv2.drawContours(contours_img, contours, -1, 255, 1)
+        output_mask[:, :, i] = contours_img
+    
+    output_mask[0, :, :] = 0
+    output_mask[-1, :, :] = 0
+    output_mask[:, 0, :] = 0
+    output_mask[:, -1, :] = 0
+
+    return output_mask.astype(np.float32)
 
 
 def dilate(mask, dilation_amount):
