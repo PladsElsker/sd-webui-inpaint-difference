@@ -123,7 +123,7 @@ def dilate(mask, dilation_amount):
 def erode(mask, erosion_amount):
     def erode_once(component):
         kernel = torch.ones(1, 1, 3, 3).to(component.device)
-        return (torch.nn.functional.conv2d(component, kernel, padding=1) > 0)
+        return (torch.nn.functional.conv2d(1 - component, kernel, padding=1) == 0)
     
     return apply_recursive_tensor_operation(mask, erosion_amount, erode_once)
 
