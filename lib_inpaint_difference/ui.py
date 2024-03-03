@@ -6,7 +6,7 @@ from sdwi2iextender import OperationMode
 from sdwi2iextender.gradio_helpers import GradioContextSwitch
 
 from modules.shared import opts
-from modules.ui_components import ToolButton, FormRow
+from modules.ui_components import ToolButton, FormRow, InputAccordion
 
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.mask_processing import compute_mask
@@ -43,19 +43,18 @@ class InpaintDifferenceTab(OperationMode):
         self.mask_blur = components["img2img_mask_blur"]
         self.mask_alpha = components["img2img_mask_alpha"]
 
-        with GradioContextSwitch(self.mask_alpha.parent):
-            self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
-        
         inpaint_block = self.mask_alpha.parent.parent.parent
         with GradioContextSwitch(inpaint_block):
-            with gr.Group() as self.inpaint_difference_ui_params:
+            with gr.Accordion(label='Inpaint Difference', open=False, elem_id="inpaint_difference_inpaint_params") as self.inpaint_difference_ui_params:
                 with FormRow():
+                    self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
                     self.difference_threshold = gr.Slider(label='Difference threshold', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_difference_threshold')
-                    
+
                 with FormRow():
                     self.contours_only = gr.Checkbox(label='Contours only', value=False, elem_id='inpaint_difference_contours_only')
         
-        inpaint_block.children[1:1], inpaint_block.children[-1:] = inpaint_block.children[-1:], inpaint_block.children[1:1]
+        # move the accordion as the first item in the list
+        inpaint_block.children[1:1], inpaint_block.children[-1:] = inpaint_block.children[-1:], []
 
     def gradio_events(self, img2img_tabs):
         self._update_sliders_visibility(img2img_tabs)
