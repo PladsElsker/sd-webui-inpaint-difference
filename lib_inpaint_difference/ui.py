@@ -48,6 +48,9 @@ class InpaintDifferenceTab(OperationMode):
             with gr.Accordion(label='Inpaint Difference', open=False, elem_id="inpaint_difference_inpaint_params") as self.inpaint_difference_ui_params:
                 with FormRow():
                     self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
+                    self.mask_erosion = gr.Slider(label='Mask erosion', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_erosion')
+                
+                with FormRow():
                     self.difference_threshold = gr.Slider(label='Difference threshold', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_difference_threshold')
 
                 with FormRow():
@@ -82,20 +85,21 @@ class InpaintDifferenceTab(OperationMode):
             )
 
     def _update_mask(self):
-        compute_mask_dict = {
-            'fn': compute_mask,
-            'inputs': [
+        compute_mask_dict = dict(
+            fn=compute_mask,
+            inputs=[
                 self.inpaint_img_component,
                 self.inpaint_alt_component,
                 self.mask_blur,
                 self.mask_dilation,
+                self.mask_erosion,
                 self.difference_threshold,
                 self.contours_only,
             ],
-            'outputs': [
+            outputs=[
                 self.inpaint_mask_component
             ]
-        }
+        )
 
         self.inpaint_img_component.upload(**compute_mask_dict)
         self.inpaint_img_component.clear(**compute_mask_dict)
@@ -103,6 +107,7 @@ class InpaintDifferenceTab(OperationMode):
         self.inpaint_alt_component.clear(**compute_mask_dict)
         self.mask_blur.release(**compute_mask_dict)
         self.mask_dilation.release(**compute_mask_dict)
+        self.mask_erosion.release(**compute_mask_dict)
         self.difference_threshold.release(**compute_mask_dict)
         self.contours_only.change(**compute_mask_dict)
 
@@ -120,6 +125,7 @@ class InpaintDifferenceTab(OperationMode):
                 self.inpaint_alt_component,
                 self.mask_blur,
                 self.mask_dilation,
+                self.mask_erosion,
                 self.difference_threshold,
                 self.contours_only,
             ],

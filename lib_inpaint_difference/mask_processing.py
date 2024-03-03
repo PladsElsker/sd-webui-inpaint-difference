@@ -11,6 +11,7 @@ def compute_mask(
         altered_img,
         blur_amount,
         dilation_amount,
+        erosion_amount,
         difference_threshold,
         contours_only,
 ):
@@ -25,7 +26,7 @@ def compute_mask(
     base = np.array(base_img).astype(np.int32)
     altered = np.array(altered_img).astype(np.int32)
 
-    img2img_processing_mask = compute_base_mask(base, altered, dilation_amount, difference_threshold, contours_only)
+    img2img_processing_mask = compute_base_mask(base, altered, dilation_amount, erosion_amount, difference_threshold, contours_only)
     visual_mask = compute_visual_mask(altered, img2img_processing_mask, blur_amount)
     return Image.fromarray(visual_mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
 
@@ -46,6 +47,7 @@ def compute_base_mask(
         base,
         altered,
         dilation_amount,
+        erosion_amount,
         difference_threshold,
         contours_only,
 ):
@@ -54,6 +56,7 @@ def compute_base_mask(
     mask = saturate(mask, difference_threshold)
     mask = extract_contours(mask, contours_only)
     mask = dilate(mask, dilation_amount)
+    mask = erode(mask, erosion_amount)
 
     mask_pil = Image.fromarray(mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
     DifferenceGlobals.generated_mask = mask_pil
@@ -129,6 +132,51 @@ def dilate(mask, dilation_amount):
     tensor_mask = torch.cat((tensor_mask_r, tensor_mask_g, tensor_mask_b), dim=1)
     dilated_mask = tensor_mask.squeeze(0).permute(1, 2, 0).cpu().numpy()
     return (dilated_mask * 255).astype(np.uint8)
+
+
+def apply_recursive_component_wise_tensor_operation(img, iterations, operation):
+    if iterations == 0:
+        return img
+
+    tensor_img = torch.from_numpy((img / 255).astype(np.float32)).permute(2, 0, 1).unsqueeze(0)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    tensor_img = tensor_img.to(device)
+
+    tensor_img_r = tensor_img[:, 0:1, :, :]
+    tensor_img_g = tensor_img[:, 1:2, :, :]
+    tensor_img_b = tensor_img[:, 2:3, :, :]
+    for _ in range(iterations):
+        tensor_img_r = operation(tensor_img_r).float()
+        tensor_img_g = operation(tensor_img_g).float()
+        tensor_img_b = operation(tensor_img_b).float()
+
+    tensor_img = torch.cat((tensor_img_r, tensor_img_g, tensor_img_b), dim=1)
+    transformed_img = tensor_img.squeeze(0).permute(1, 2, 0).cpu().numpy()
+    return (transformed_img * 255).astype(np.uint8)
+
+
+def erode(mask, erosion_amount):
+    if erosion_amount == 0:
+        return mask
+
+    tensor_mask = torch.from_numpy((mask / 255).astype(np.float32)).permute(2, 0, 1).unsqueeze(0)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    tensor_mask = tensor_mask.to(device)
+    kernel = torch.ones(1, 1, 3, 3).to(device)
+
+    tensor_mask_r = tensor_mask[:, 0:1, :, :]
+    tensor_mask_g = tensor_mask[:, 1:2, :, :]
+    tensor_mask_b = tensor_mask[:, 2:3, :, :]
+    for _ in range(erosion_amount):
+        tensor_mask_r = (torch.nn.functional.conv2d(1 - tensor_mask_r, kernel, padding=1) == 0).float()
+        tensor_mask_g = (torch.nn.functional.conv2d(1 - tensor_mask_g, kernel, padding=1) == 0).float()
+        tensor_mask_b = (torch.nn.functional.conv2d(1 - tensor_mask_b, kernel, padding=1) == 0).float()
+
+    tensor_mask = torch.cat((tensor_mask_r, tensor_mask_g, tensor_mask_b), dim=1)
+    eroded_mask = tensor_mask.squeeze(0).permute(1, 2, 0).cpu().numpy()
+    return (eroded_mask * 255).astype(np.uint8)
 
 
 # similar to how StableDiffusionProcessingImg2Img does it
