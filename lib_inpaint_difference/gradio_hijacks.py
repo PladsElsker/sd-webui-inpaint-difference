@@ -12,8 +12,8 @@ def hijack_encode_pil_to_base64():
     def encode_pil_to_base64_new(pil_image):
         image_arr = np.asarray(pil_image)
         if image_arr.ndim == 3:
-            image_arr = np.asarray(pil_image)[:, :, ::-1]
-            
+            image_arr = image_arr[:, :, ::-1]
+
         _, byte_data = imencode('.png', image_arr)
         base64_data = base64.b64encode(byte_data)
         base64_string_opencv = base64_data.decode("utf-8")
