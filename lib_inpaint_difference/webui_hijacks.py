@@ -1,13 +1,14 @@
 import gradio as gr
 
-from modules import img2img
+from modules import img2img, shared
 
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.one_time_callable import one_time_callable
 
+IS_WEBUI_1_9 = hasattr(shared.cmd_opts, 'unix_filenames_sanitization')
 
 @one_time_callable
-def hijack_img2img_processing():
+def hijack_img2img_processing_before_1_9():
     original_img2img_processing = img2img.img2img
 
     def hijack_func(id_task: str, mode: int, prompt: str, negative_prompt: str, prompt_styles, init_img, sketch,
@@ -38,3 +39,29 @@ def hijack_img2img_processing():
             img2img_batch_png_info_props, img2img_batch_png_info_dir, request, *args)
 
     img2img.img2img = hijack_func
+
+
+
+MODE_IDX = 0
+INIT_IMG_WITH_MASK_IDX = 6
+
+@one_time_callable
+def hijack_img2img_processing():
+    original_img2img_processing = img2img.img2img
+
+    def hijack_func(id_task: str, request: gr.Request, *args):
+        args = list(args)
+        if args[MODE_IDX] == DifferenceGlobals.tab_index:
+            args[MODE_IDX] = 2  # use the "inpaint" operation mode for processing
+            args[INIT_IMG_WITH_MASK_IDX] = {
+                'image': DifferenceGlobals.altered_image,
+                'mask': DifferenceGlobals.generated_mask,
+            }
+        return original_img2img_processing(id_task, request, *args)
+
+    img2img.img2img = hijack_func
+
+
+if not IS_WEBUI_1_9:
+    hijack_img2img_processing = hijack_img2img_processing_before_1_9
+
