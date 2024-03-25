@@ -57,11 +57,10 @@ def hijack_img2img_processing():
                 'image': DifferenceGlobals.altered_image,
                 'mask': DifferenceGlobals.generated_mask,
             }
-        return original_img2img_processing(id_task, request, *args)
+        return original_img2img_processing(id_task, *args, request=request)
 
     img2img.img2img = hijack_func
 
 
 if not IS_WEBUI_1_9:
     hijack_img2img_processing = hijack_img2img_processing_before_1_9
-
