@@ -47,8 +47,8 @@ class InpaintDifferenceTab(OperationMode):
         with GradioContextSwitch(inpaint_block):
             with gr.Accordion(label='Inpaint Difference', open=False, elem_id="inpaint_difference_inpaint_params") as self.inpaint_difference_ui_params:
                 with FormRow():
-                    self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
                     self.mask_erosion = gr.Slider(label='Mask erosion', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_erosion')
+                    self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
                 
                 with FormRow():
                     self.difference_threshold = gr.Slider(label='Difference threshold', maximum=1, step=0.01, value=1, elem_id='inpaint_difference_difference_threshold')
