@@ -2,7 +2,7 @@ from modules.shared import opts
 
 
 class DifferenceGlobals:
-    tab_index = None
+    tab_selected = None
 
     base_image = None
     altered_image = None

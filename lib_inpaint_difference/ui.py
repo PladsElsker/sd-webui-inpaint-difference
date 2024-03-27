@@ -18,7 +18,6 @@ class InpaintDifferenceTab(OperationMode):
 
     def __init__(self, tab_index: int):
         self.tab_index = tab_index
-        DifferenceGlobals.tab_index = tab_index
 
         self.inpaint_img_component = None
         self.inpaint_alt_component = None
@@ -60,10 +59,22 @@ class InpaintDifferenceTab(OperationMode):
         inpaint_block.children[1:1], inpaint_block.children[-1:] = inpaint_block.children[-1:], []
 
     def gradio_events(self, img2img_tabs):
+        self._update_selected(img2img_tabs)
         self._update_sliders_visibility(img2img_tabs)
         self._update_mask()
         self._swap_images_tool()
         self._update_resize_to_slider_dimensions()
+
+    def _update_selected(self, img2img_tabs):
+        def tab_clicked(tab_id):
+            DifferenceGlobals.tab_selected = tab_id == self.tab_index
+        
+        for i, tab in enumerate(img2img_tabs):
+            tab.select(
+                fn=functools.partial(tab_clicked, tab_id=i),
+                inputs=[],
+                outputs=[]
+            )
 
     def _update_sliders_visibility(self, img2img_tabs):
         def sliders_visibility_func(tab_id):
@@ -138,4 +149,3 @@ class InpaintDifferenceTab(OperationMode):
 
     def _update_resize_to_slider_dimensions(self):
         self.inpaint_mask_component.change(fn=lambda: None, _js="updateImg2imgResizeToTextAfterChangingImage", inputs=[], outputs=[], show_progress=False)
-    
