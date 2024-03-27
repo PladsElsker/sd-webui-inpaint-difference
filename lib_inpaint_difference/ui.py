@@ -6,7 +6,7 @@ from sdwi2iextender import OperationMode
 from sdwi2iextender.gradio_helpers import GradioContextSwitch
 
 from modules.shared import opts
-from modules.ui_components import ToolButton, FormRow, InputAccordion
+from modules.ui_components import ToolButton, FormRow
 
 from lib_inpaint_difference.globals import DifferenceGlobals
 from lib_inpaint_difference.mask_processing import compute_mask
