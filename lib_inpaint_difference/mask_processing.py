@@ -16,20 +16,21 @@ def compute_mask(
         difference_threshold,
         contours_only,
 ):
-    DifferenceGlobals.base_image = base_img
-    DifferenceGlobals.altered_image = altered_img
-
     if not validate_input_images(base_img, altered_img):
-        return None
+        return None, None
 
     base_img, altered_img = ensure_same_size(base_img, altered_img)
 
     base = np.array(base_img).astype(np.int32)
     altered = np.array(altered_img).astype(np.int32)
 
-    img2img_processing_mask = compute_base_mask(base, altered, dilation_amount, erosion_amount, difference_threshold, contours_only)
-    visual_mask = compute_visual_mask(altered, img2img_processing_mask, blur_amount)
-    return Image.fromarray(visual_mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
+    mask = compute_base_mask(base, altered, dilation_amount, erosion_amount, difference_threshold, contours_only)
+    visual_mask = compute_visual_mask(altered, mask, blur_amount)
+
+    mask_pil = Image.fromarray(mask.astype(np.uint8), mode=altered_img.mode)
+    visual_mask_pil = Image.fromarray(visual_mask.astype(np.uint8), mode=altered_img.mode)
+
+    return mask_pil, visual_mask_pil
 
 
 def validate_input_images(base_img, altered_img):
@@ -58,9 +59,6 @@ def compute_base_mask(
     mask = extract_contours(mask, contours_only)
     mask = dilate(mask, dilation_amount)
     mask = erode(mask, erosion_amount)
-
-    mask_pil = Image.fromarray(mask.astype(np.uint8), mode=DifferenceGlobals.base_image.mode)
-    DifferenceGlobals.generated_mask = mask_pil
     return mask
 
 
