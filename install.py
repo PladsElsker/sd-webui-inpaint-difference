@@ -3,7 +3,7 @@ import pkg_resources
 import platform
 
 
-minimum_sdwi2iextender_version = "0.1.3"
+minimum_sdwi2iextender_version = "0.2.0"
 if not launch.is_installed("sdwi2iextender"):
     launch.run_pip(f"install sdwi2iextender", f"sdwi2iextender for sd-webui-inpaint-difference")
 else:
