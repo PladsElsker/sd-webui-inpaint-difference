@@ -1,14 +1,17 @@
-import functools
 import uuid
 import gradio as gr
-
 from sdwi2iextender import OperationMode
 from sdwi2iextender.gradio_helpers import GradioContextSwitch
 
 from modules.shared import opts
 from modules.ui_components import ToolButton, FormRow
 
-from lib_inpaint_difference.mask_processing import compute_mask
+from .mask_processing import compute_mask
+from .clipboard_ops import pil_to_clipboard
+
+
+MASK_SAVE_BUTTON_APPLIED_LABEL = "Mask saved!"
+DEFAULT_MASK_SAVE_BUTTON_LABEL = "Copy mask to clipboard"
 
 
 class InpaintDifferenceTab(OperationMode):
@@ -40,6 +43,7 @@ class InpaintDifferenceTab(OperationMode):
 
             mask_component_height = getattr(opts, 'img2img_editor_height', 512)  # 512 is for SD.Next
             self.inpaint_visual_mask_component = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="visual_mask_inpaint_difference", height=mask_component_height)
+            self.copy_mask_to_clipboard = gr.Button(value=DEFAULT_MASK_SAVE_BUTTON_LABEL)
 
     def section(self, components):
         self.mask_blur = components["img2img_mask_blur"]
@@ -47,7 +51,7 @@ class InpaintDifferenceTab(OperationMode):
 
         inpaint_block = self.mask_alpha.parent.parent.parent
         with GradioContextSwitch(inpaint_block):
-            with gr.Accordion(label='Inpaint Difference', open=False, visible=False, elem_id="inpaint_difference_inpaint_params") as self.inpaint_difference_ui_params:
+            with gr.Accordion(label='Inpaint Difference', open=True, visible=False, elem_id="inpaint_difference_inpaint_params") as self.inpaint_difference_ui_params:
                 with FormRow():
                     self.mask_erosion = gr.Slider(label='Mask erosion', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_erosion')
                     self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
@@ -65,6 +69,7 @@ class InpaintDifferenceTab(OperationMode):
         self._update_sliders_visibility(selected)
         self._update_mask()
         self._swap_images_tool()
+        self._save_mask_to_clipboard_tool()
         self._update_resize_to_slider_dimensions()
 
     def _update_sliders_visibility(self, selected):
@@ -136,6 +141,22 @@ class InpaintDifferenceTab(OperationMode):
                 self.inpaint_visual_mask_component,
             ]
         )
+    
+    def _save_mask_to_clipboard_tool(self):
+        def save_mask_to_clipboard_function(mask):
+            pil_to_clipboard(mask)
+            return gr.update(value=MASK_SAVE_BUTTON_APPLIED_LABEL)
+
+        self.copy_mask_to_clipboard.click(
+            fn=save_mask_to_clipboard_function,
+            inputs=[self.inpaint_mask_component],
+            outputs=[self.copy_mask_to_clipboard],
+        )
+        """self.inpaint_mask_component.change(
+            fn=lambda: gr.update(value=DEFAULT_MASK_SAVE_BUTTON_LABEL),
+            inputs=[],
+            outputs=[self.copy_mask_to_clipboard],
+        )"""
 
     def _update_resize_to_slider_dimensions(self):
         self.inpaint_visual_mask_component.change(fn=lambda: None, _js="updateImg2imgResizeToTextAfterChangingImage", inputs=[], outputs=[], show_progress=False)
