@@ -1,14 +1,12 @@
-import functools
 import uuid
 import gradio as gr
-
 from sdwi2iextender import OperationMode
 from sdwi2iextender.gradio_helpers import GradioContextSwitch
 
 from modules.shared import opts
 from modules.ui_components import ToolButton, FormRow
 
-from lib_inpaint_difference.mask_processing import compute_mask
+from .mask_processing import compute_mask
 
 
 class InpaintDifferenceTab(OperationMode):
@@ -28,7 +26,7 @@ class InpaintDifferenceTab(OperationMode):
     def image_components(self):
         self.inpaint_alt_component = gr.Image(label="Altered image", source="upload", interactive=True, type="pil", elem_id="alt_inpaint_difference")
         self.inpaint_alt_component.unrender()
-        self.inpaint_mask_component = gr.Image(visible=False, label="Altered image", interactive=True, type="pil", elem_id="mask_inpaint_difference")
+        self.inpaint_mask_component = gr.Image(visible=False, label="Mask", interactive=True, type="pil", elem_id="mask_inpaint_difference")
         return self.inpaint_alt_component, self.inpaint_mask_component
 
     def tab(self):
@@ -47,7 +45,7 @@ class InpaintDifferenceTab(OperationMode):
 
         inpaint_block = self.mask_alpha.parent.parent.parent
         with GradioContextSwitch(inpaint_block):
-            with gr.Accordion(label='Inpaint Difference', open=False, visible=False, elem_id="inpaint_difference_inpaint_params") as self.inpaint_difference_ui_params:
+            with gr.Accordion(label='Inpaint Difference', open=True, visible=False, elem_id="inpaint_difference_inpaint_params") as self.inpaint_difference_ui_params:
                 with FormRow():
                     self.mask_erosion = gr.Slider(label='Mask erosion', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_erosion')
                     self.mask_dilation = gr.Slider(label='Mask dilation', maximum=100, step=1, value=0, elem_id='inpaint_difference_mask_dilation')
