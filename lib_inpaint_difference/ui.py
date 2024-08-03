@@ -30,7 +30,7 @@ class InpaintDifferenceTab(OperationMode):
         return self.inpaint_alt_component, self.inpaint_mask_component
 
     def tab(self):
-        with gr.TabItem(label='Inpaint difference') as self.tab:
+        with gr.TabItem(label='Inpaint difference'):
             with gr.Row():
                 self.inpaint_img_component = gr.Image(label="Base image", source="upload", interactive=True, type="pil", elem_id="img_inpaint_difference")
                 self.swap_images = ToolButton(value='⇆', elem_id=f'img2img_inpaint_difference_swap_images_{uuid.uuid4()}', elem_classes=['img2img_inpaint_difference_swap_images'], tooltip="Swap images.")
