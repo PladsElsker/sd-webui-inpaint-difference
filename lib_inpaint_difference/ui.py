@@ -7,11 +7,6 @@ from modules.shared import opts
 from modules.ui_components import ToolButton, FormRow
 
 from .mask_processing import compute_mask
-from .clipboard_ops import pil_to_clipboard
-
-
-MASK_SAVE_BUTTON_APPLIED_LABEL = "Mask saved!"
-DEFAULT_MASK_SAVE_BUTTON_LABEL = "Copy mask to clipboard"
 
 
 class InpaintDifferenceTab(OperationMode):
@@ -31,7 +26,7 @@ class InpaintDifferenceTab(OperationMode):
     def image_components(self):
         self.inpaint_alt_component = gr.Image(label="Altered image", source="upload", interactive=True, type="pil", elem_id="alt_inpaint_difference")
         self.inpaint_alt_component.unrender()
-        self.inpaint_mask_component = gr.Image(visible=False, label="Altered image", interactive=True, type="pil", elem_id="mask_inpaint_difference")
+        self.inpaint_mask_component = gr.Image(visible=False, label="Mask", interactive=True, type="pil", elem_id="mask_inpaint_difference")
         return self.inpaint_alt_component, self.inpaint_mask_component
 
     def tab(self):
@@ -43,7 +38,6 @@ class InpaintDifferenceTab(OperationMode):
 
             mask_component_height = getattr(opts, 'img2img_editor_height', 512)  # 512 is for SD.Next
             self.inpaint_visual_mask_component = gr.Image(label="Difference mask", interactive=False, type="pil", elem_id="visual_mask_inpaint_difference", height=mask_component_height)
-            self.copy_mask_to_clipboard = gr.Button(value=DEFAULT_MASK_SAVE_BUTTON_LABEL)
 
     def section(self, components):
         self.mask_blur = components["img2img_mask_blur"]
@@ -69,7 +63,6 @@ class InpaintDifferenceTab(OperationMode):
         self._update_sliders_visibility(selected)
         self._update_mask()
         self._swap_images_tool()
-        self._save_mask_to_clipboard_tool()
         self._update_resize_to_slider_dimensions()
 
     def _update_sliders_visibility(self, selected):
@@ -141,22 +134,6 @@ class InpaintDifferenceTab(OperationMode):
                 self.inpaint_visual_mask_component,
             ]
         )
-    
-    def _save_mask_to_clipboard_tool(self):
-        def save_mask_to_clipboard_function(mask):
-            pil_to_clipboard(mask)
-            return gr.update(value=MASK_SAVE_BUTTON_APPLIED_LABEL)
-
-        self.copy_mask_to_clipboard.click(
-            fn=save_mask_to_clipboard_function,
-            inputs=[self.inpaint_mask_component],
-            outputs=[self.copy_mask_to_clipboard],
-        )
-        """self.inpaint_mask_component.change(
-            fn=lambda: gr.update(value=DEFAULT_MASK_SAVE_BUTTON_LABEL),
-            inputs=[],
-            outputs=[self.copy_mask_to_clipboard],
-        )"""
 
     def _update_resize_to_slider_dimensions(self):
         self.inpaint_visual_mask_component.change(fn=lambda: None, _js="updateImg2imgResizeToTextAfterChangingImage", inputs=[], outputs=[], show_progress=False)
